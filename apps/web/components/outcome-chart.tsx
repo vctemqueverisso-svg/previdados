@@ -11,13 +11,13 @@ export function OutcomeChart({ data }: Props) {
     <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#eadfce" />
-          <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#667289" }} axisLine={false} tickLine={false} />
-          <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#667289" }} />
+          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e3e9f2" />
+          <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#6a7890" }} axisLine={false} tickLine={false} />
+          <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#6a7890" }} />
           <Tooltip />
-          <Legend />
-          <Bar dataKey="success" name="Favoraveis" fill="#40513b" radius={[6, 6, 0, 0]} />
-          <Bar dataKey="failure" name="Desfavoraveis" fill="#9f3a38" radius={[6, 6, 0, 0]} />
+          <Legend wrapperStyle={{ paddingTop: 12 }} />
+          <Bar dataKey="success" name="Favoráveis" fill="#47647d" radius={[8, 8, 0, 0]} maxBarSize={42} />
+          <Bar dataKey="failure" name="Desfavoráveis" fill="#b55d52" radius={[8, 8, 0, 0]} maxBarSize={42} />
         </BarChart>
       </ResponsiveContainer>
     </div>

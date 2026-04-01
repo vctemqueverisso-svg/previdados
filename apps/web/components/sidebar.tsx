@@ -7,12 +7,12 @@ import { useEffect, useState } from "react";
 import { cn } from "./utils";
 
 const items = [
-  { href: "/", label: "Inicio", icon: Home },
+  { href: "/", label: "Início", icon: Home },
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/casos", label: "Casos", icon: Briefcase },
   { href: "/documentos", label: "Documentos", icon: FileText },
   { href: "/peritos", label: "Peritos", icon: Scale },
-  { href: "/estatisticas", label: "Estatisticas", icon: BarChart3 },
+  { href: "/estatisticas", label: "Estatísticas", icon: BarChart3 },
   { href: "/seguranca", label: "LGPD", icon: ShieldCheck }
 ];
 
@@ -60,15 +60,15 @@ export function Sidebar() {
           <div className="flex items-center justify-between gap-3 pr-12">
             <p className="text-[11px] uppercase tracking-[0.28em] text-stone-300">PREVIDAS</p>
             <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-slate-300">
-              local
+              painel
             </span>
           </div>
-          <div className="mt-4 rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-4">
+          <div className="mt-4 rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))] px-4 py-4">
             <p className="text-[10px] uppercase tracking-[0.28em] text-slate-400">Plataforma</p>
-            <h1 className="mt-3 text-[1.28rem] font-semibold leading-[1.02]">Inteligencia previdenciaria aplicada</h1>
+            <h1 className="mt-3 text-[1.24rem] font-semibold leading-[1.04] tracking-[-0.02em]">Inteligência previdenciária aplicada</h1>
           </div>
-          <p className="mt-2 text-[13px] leading-5 text-slate-300">
-            Operacao juridica, base documental e leitura estatistica em um so lugar.
+          <p className="mt-3 text-[13px] leading-6 text-slate-300">
+            Operação jurídica, base documental e leitura estatística em um só lugar.
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export function Sidebar() {
                 >
                   <Icon className="h-4 w-4" />
                 </span>
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium tracking-[0.01em]">{item.label}</span>
               </Link>
             );
           })}
@@ -102,7 +102,7 @@ export function Sidebar() {
         <div className="mt-3 rounded-[18px] border border-white/10 bg-white/[0.04] p-3">
           <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Objetivo</p>
           <p className="mt-2 text-[12px] leading-5 text-slate-200">
-            Organizar casos, comparar padroes periciais e sustentar decisao juridica com mais clareza e previsibilidade.
+            Organizar casos, comparar padrões periciais e sustentar decisões jurídicas com mais clareza e previsibilidade.
           </p>
         </div>
       </aside>
