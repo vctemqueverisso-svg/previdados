@@ -1,0 +1,364 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  ADVOGADO
+  ASSISTENTE
+  LEITURA
+}
+
+enum Gender {
+  FEMININO
+  MASCULINO
+  OUTRO
+  NAO_INFORMADO
+}
+
+enum ChannelType {
+  ADMINISTRATIVO
+  JUDICIAL
+}
+
+enum BenefitType {
+  AUXILIO_DOENCA
+  APOSENTADORIA_INCAPACIDADE
+  BPC_LOAS
+  OUTRO
+}
+
+enum CaseStatus {
+  EM_ANALISE
+  AGUARDANDO_DOCUMENTOS
+  EM_PERICIA
+  AGUARDANDO_DECISAO
+  CONCLUIDO
+  ARQUIVADO
+}
+
+enum StrengthLevel {
+  FRACA
+  MEDIA
+  FORTE
+}
+
+enum RiskLevel {
+  BAIXO
+  MEDIO
+  ALTO
+}
+
+enum ProceduralEventType {
+  PROTOCOLO
+  PERICIA_ADMINISTRATIVA
+  DECISAO_ADMINISTRATIVA
+  AJUIZAMENTO
+  PERICIA_JUDICIAL
+  SENTENCA
+  RECURSO
+  ACORDAO
+  CUMPRIMENTO
+  OUTRO
+}
+
+enum OutcomeStatus {
+  DEFERIDO
+  INDEFERIDO
+  PROCEDENTE
+  IMPROCEDENTE
+  PARCIALMENTE_PROCEDENTE
+  ACORDO
+  PENDENTE
+}
+
+enum OCRStatus {
+  PENDENTE
+  PROCESSANDO
+  CONCLUIDO
+  FALHOU
+}
+
+enum AIStatus {
+  NAO_INICIADO
+  PENDENTE_REVISAO
+  APROVADO
+  REJEITADO
+}
+
+enum ExtractionSourceType {
+  MANUAL
+  AI
+  OCR_E_AI
+}
+
+enum IncapacityScope {
+  TOTAL
+  PARCIAL
+  NAO_INFORMADO
+}
+
+enum IncapacityDuration {
+  TEMPORARIA
+  PERMANENTE
+  NAO_INFORMADO
+}
+
+model User {
+  id             String      @id @default(cuid())
+  name           String
+  email          String      @unique
+  passwordHash   String      @map("password_hash")
+  role           UserRole    @default(ADVOGADO)
+  isActive       Boolean     @default(true) @map("is_active")
+  lastLoginAt    DateTime?   @map("last_login_at")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  clientsCreated Client[]
+  casesCreated   Case[]
+  uploads        Document[]  @relation("documents_uploaded_by")
+  auditLogs      AuditLog[]
+}
+
+model Client {
+  id              String     @id @default(cuid())
+  fullName        String     @map("full_name")
+  cpf             String     @unique
+  birthDate       DateTime   @map("birth_date")
+  gender          Gender     @default(NAO_INFORMADO)
+  phone           String?
+  email           String?
+  city            String?
+  state           String?
+  notes           String?
+  createdByUserId String     @map("created_by_user_id")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  createdBy       User       @relation(fields: [createdByUserId], references: [id])
+  cases           Case[]
+  documents       Document[]
+}
+
+model Disease {
+  id             String                 @id @default(cuid())
+  name           String                 @unique
+  description    String?
+  normalizedName String                 @map("normalized_name")
+  mainCases      Case[]                 @relation("main_case_disease")
+  caseLinks      CaseSecondaryDisease[]
+  extractions    DocumentExtraction[]
+}
+
+model Cid {
+  id             String               @id @default(cuid())
+  code           String               @unique
+  description    String
+  chapter        String?
+  mainCases      Case[]               @relation("main_case_cid")
+  caseLinks      CaseSecondaryCid[]
+  extractions    DocumentExtraction[]
+}
+
+model Expert {
+  id             String   @id @default(cuid())
+  fullName       String   @map("full_name")
+  specialty      String?
+  registryNumber String?  @map("registry_number")
+  city           String?
+  state          String?
+  internalNotes  String?  @map("internal_notes")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  cases          Case[]
+}
+
+model Case {
+  id                     String                 @id @default(cuid())
+  internalCode           String                 @unique @map("internal_code")
+  clientId               String                 @map("client_id")
+  caseNumber             String?                @map("case_number")
+  channelType            ChannelType            @map("channel_type")
+  benefitType            BenefitType            @map("benefit_type")
+  protocolDate           DateTime?              @map("protocol_date")
+  derDate                DateTime?              @map("der_date")
+  expertExamDate         DateTime?              @map("expert_exam_date")
+  decisionDate           DateTime?              @map("decision_date")
+  mainDiseaseId          String?                @map("main_disease_id")
+  mainCidId              String?                @map("main_cid_id")
+  profession             String?
+  educationLevel         String?                @map("education_level")
+  ageAtFiling            Int?                   @map("age_at_filing")
+  familyIncome           Decimal?               @db.Decimal(12, 2) @map("family_income")
+  familyGroupDescription String?                @map("family_group_description")
+  expertId               String?                @map("expert_id")
+  courtAgencyName        String?                @map("court_agency_name")
+  courtDivision          String?                @map("court_division")
+  city                   String?
+  state                  String?
+  urgentReliefRequested  Boolean                @default(false) @map("urgent_relief_requested")
+  currentStatus          CaseStatus             @default(EM_ANALISE) @map("current_status")
+  strategySummary        String?                @map("strategy_summary")
+  createdByUserId        String                 @map("created_by_user_id")
+  createdAt              DateTime               @default(now()) @map("created_at")
+  updatedAt              DateTime               @updatedAt @map("updated_at")
+  client                 Client                 @relation(fields: [clientId], references: [id])
+  createdBy              User                   @relation(fields: [createdByUserId], references: [id])
+  mainDisease            Disease?               @relation("main_case_disease", fields: [mainDiseaseId], references: [id])
+  mainCid                Cid?                   @relation("main_case_cid", fields: [mainCidId], references: [id])
+  expert                 Expert?                @relation(fields: [expertId], references: [id])
+  secondaryDiseases      CaseSecondaryDisease[]
+  secondaryCids          CaseSecondaryCid[]
+  documents              Document[]
+  proceduralEvents       ProceduralEvent[]
+  internalNotes          InternalNote[]
+  result                 CaseResult?
+}
+
+model CaseSecondaryDisease {
+  id        String  @id @default(cuid())
+  caseId    String  @map("case_id")
+  diseaseId String  @map("disease_id")
+  case      Case    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  disease   Disease @relation(fields: [diseaseId], references: [id])
+
+  @@unique([caseId, diseaseId])
+}
+
+model CaseSecondaryCid {
+  id     String @id @default(cuid())
+  caseId String @map("case_id")
+  cidId  String @map("cid_id")
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  cid    Cid    @relation(fields: [cidId], references: [id])
+
+  @@unique([caseId, cidId])
+}
+
+model DocumentCategory {
+  id           String     @id @default(cuid())
+  name         String
+  code         String     @unique
+  description  String?
+  isMedical    Boolean    @default(false) @map("is_medical")
+  isProcedural Boolean    @default(false) @map("is_procedural")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  documents    Document[]
+}
+
+model Document {
+  id               String               @id @default(cuid())
+  clientId         String?              @map("client_id")
+  caseId           String?              @map("case_id")
+  categoryId       String               @map("category_id")
+  uploadedByUserId String               @map("uploaded_by_user_id")
+  fileName         String               @map("file_name")
+  originalFileName String               @map("original_file_name")
+  mimeType         String               @map("mime_type")
+  storageKey       String               @map("storage_key")
+  fileSize         Int                  @map("file_size")
+  documentDate     DateTime?            @map("document_date")
+  origin           String?
+  notes            String?
+  ocrStatus        OCRStatus            @default(PENDENTE) @map("ocr_status")
+  aiStatus         AIStatus             @default(NAO_INICIADO) @map("ai_status")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+  client           Client?              @relation(fields: [clientId], references: [id])
+  case             Case?                @relation(fields: [caseId], references: [id])
+  category         DocumentCategory     @relation(fields: [categoryId], references: [id])
+  uploadedBy       User                 @relation("documents_uploaded_by", fields: [uploadedByUserId], references: [id])
+  extractions      DocumentExtraction[]
+  proceduralEvents ProceduralEvent[]
+}
+
+model DocumentExtraction {
+  id                     String               @id @default(cuid())
+  documentId             String               @map("document_id")
+  sourceType             ExtractionSourceType @map("source_type")
+  diseaseId              String?              @map("disease_id")
+  cidId                  String?              @map("cid_id")
+  medicalConclusion      String?              @map("medical_conclusion")
+  hasIncapacity          Boolean?             @map("has_incapacity")
+  incapacityScope        IncapacityScope?     @map("incapacity_scope")
+  incapacityDuration     IncapacityDuration?  @map("incapacity_duration")
+  disabilityStartDate    DateTime?            @map("disability_start_date")
+  functionalLimitations  String?              @map("functional_limitations")
+  analyzedProfession     String?              @map("analyzed_profession")
+  rehabilitationPossible Boolean?             @map("rehabilitation_possible")
+  decisionGrounding      String?              @map("decision_grounding")
+  finalConclusion        String?              @map("final_conclusion")
+  confidenceScore        Float?               @map("confidence_score")
+  reviewedByUserId       String?              @map("reviewed_by_user_id")
+  reviewedAt             DateTime?            @map("reviewed_at")
+  createdAt              DateTime             @default(now()) @map("created_at")
+  document               Document             @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  disease                Disease?             @relation(fields: [diseaseId], references: [id])
+  cid                    Cid?                 @relation(fields: [cidId], references: [id])
+}
+
+model CaseResult {
+  id                   String         @id @default(cuid())
+  caseId               String         @unique @map("case_id")
+  administrativeResult OutcomeStatus? @map("administrative_result")
+  judicialResult       OutcomeStatus? @map("judicial_result")
+  finalOutcome         OutcomeStatus? @map("final_outcome")
+  outcomeReason        String?        @map("outcome_reason")
+  decisionSummary      String?        @map("decision_summary")
+  successFlag          Boolean?       @map("success_flag")
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
+  case                 Case           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+model ProceduralEvent {
+  id                String              @id @default(cuid())
+  caseId            String              @map("case_id")
+  eventType         ProceduralEventType @map("event_type")
+  eventDate         DateTime            @map("event_date")
+  description       String?
+  relatedDocumentId String?             @map("related_document_id")
+  createdByUserId   String              @map("created_by_user_id")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  case              Case                @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  relatedDocument   Document?           @relation(fields: [relatedDocumentId], references: [id])
+
+  @@index([caseId, eventDate])
+}
+
+model InternalNote {
+  id                        String         @id @default(cuid())
+  caseId                    String         @map("case_id")
+  strengthOfMedicalEvidence StrengthLevel? @map("strength_of_medical_evidence")
+  mainObstacle              String?        @map("main_obstacle")
+  mainThesis                String?        @map("main_thesis")
+  secondaryThesis           String?        @map("secondary_thesis")
+  hearingExamNotes          String?        @map("hearing_exam_notes")
+  estimatedRisk             RiskLevel?     @map("estimated_risk")
+  reasonForDenial           String?        @map("reason_for_denial")
+  decisionCentralGround     String?        @map("decision_central_ground")
+  privateNote               String?        @map("private_note")
+  createdByUserId           String         @map("created_by_user_id")
+  updatedByUserId           String?        @map("updated_by_user_id")
+  createdAt                 DateTime       @default(now()) @map("created_at")
+  updatedAt                 DateTime       @updatedAt @map("updated_at")
+  case                      Case           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  metadata   Json?    @map("metadata_json")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id])
+}
+
