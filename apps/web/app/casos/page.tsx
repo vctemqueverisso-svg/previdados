@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { PageHeader } from "../../components/page-header";
-import { CreateCaseForm } from "../../components/create-case-form";
+import { CaseRegistry } from "../../components/case-registry";
 import { apiGet } from "../../lib/api";
 import { CaseItem, Client, Expert } from "../../lib/types";
 
@@ -20,6 +19,7 @@ export default async function CasesPage({
     }
   });
   const query = params.size ? `?${params.toString()}` : "";
+  const lockedClientId = typeof resolvedSearchParams.clientId === "string" ? resolvedSearchParams.clientId : undefined;
 
   const [cases, clients, diseases, cids, experts] = await Promise.all([
     apiGet<CaseItem[]>(`/cases${query}`),
@@ -33,7 +33,7 @@ export default async function CasesPage({
     <div>
       <PageHeader
         title="Casos"
-        description="Controle de processos administrativos e judiciais com filtros estrategicos, metadados estruturados e historico consolidado."
+        description="Espaco de atendimento e estrategia do cliente, com vinculo ao processo administrativo ou judicial, relato relevante e acompanhamento estruturado."
       />
 
       <form className="card mb-6 grid gap-3 p-5 md:grid-cols-5">
@@ -66,48 +66,14 @@ export default async function CasesPage({
         <button className="rounded-xl bg-gold px-4 py-3 text-sm font-medium text-white hover:bg-gold/90">Filtrar</button>
       </form>
 
-      <CreateCaseForm
+      <CaseRegistry
+        initialCases={cases}
         clients={clients.map((item) => ({ id: item.id, label: item.fullName }))}
         diseases={diseases.map((item) => ({ id: item.id, label: item.name || "" }))}
         cids={cids.map((item) => ({ id: item.id, label: `${item.code} - ${item.description}` }))}
         experts={experts.map((item) => ({ id: item.id, label: item.fullName }))}
+        lockedClientId={lockedClientId}
       />
-
-      <div className="card mt-6 overflow-hidden">
-        <table className="data-table min-w-full">
-          <thead className="bg-[#f7f1e7]">
-            <tr>
-              <th>Caso</th>
-              <th>Cliente</th>
-              <th>Via</th>
-              <th>Beneficio</th>
-              <th>Doenca/CID</th>
-              <th>Perito</th>
-              <th>Resultado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cases.map((item) => (
-              <tr key={item.id}>
-                <td>
-                  <Link href={`/casos/${item.id}`} className="font-medium text-ink hover:text-gold">
-                    {item.internalCode}
-                  </Link>
-                  <div className="text-xs text-stone-500">{item.caseNumber || "-"}</div>
-                </td>
-                <td>{item.client.fullName}</td>
-                <td>{item.channelType}</td>
-                <td>{item.benefitType}</td>
-                <td>
-                  {[item.mainDisease?.name, item.mainCid?.code].filter(Boolean).join(" / ") || "-"}
-                </td>
-                <td>{item.expert?.fullName || "-"}</td>
-                <td>{item.result?.finalOutcome || item.currentStatus}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

@@ -80,11 +80,13 @@ h3,
 .data-table th {
   @apply px-5 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.18em];
   color: #6f7d95;
+  white-space: nowrap;
 }
 
 .data-table td {
   @apply px-5 py-4 align-top text-sm;
   color: #24324c;
+  white-space: nowrap;
 }
 
 .data-table tbody tr {
@@ -98,4 +100,21 @@ h3,
 .metric-value {
   @apply text-4xl font-semibold leading-none;
   letter-spacing: -0.04em;
+}
+
+@media (max-width: 768px) {
+  .card {
+    border-radius: 24px;
+  }
+
+  .section-shell {
+    border-radius: 28px;
+    padding: 1.1rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }

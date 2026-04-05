@@ -30,5 +30,5 @@ Set-Location -LiteralPath '$projectRoot\apps\api'
 Start-PowerShellWindow @"
 `$env:Path = '$nodePath;' + `$env:Path
 Set-Location -LiteralPath '$projectRoot\apps\web'
-& '$nodePath\npx.cmd' next start --hostname 0.0.0.0 --port 3000
+& '$nodePath\npm.cmd' run dev
 "@

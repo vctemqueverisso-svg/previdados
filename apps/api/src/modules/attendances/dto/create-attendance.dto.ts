@@ -21,6 +21,10 @@ export class CreateAttendanceDto {
 
   @IsOptional()
   @IsString()
+  ownerName?: string;
+
+  @IsOptional()
+  @IsString()
   contactChannel?: string;
 
   @IsOptional()

@@ -39,6 +39,7 @@ export type AttendanceItem = {
   title: string;
   kind: string;
   attendanceDate: string;
+  ownerName?: string;
   contactChannel?: string;
   summary?: string;
   clientReport?: string;
@@ -73,7 +74,7 @@ export type CaseItem = {
   benefitType: string;
   currentStatus: string;
   city?: string;
-  client: { fullName: string; gender: string };
+  client: { id: string; fullName: string; gender: string };
   mainDisease?: { name: string };
   mainCid?: { code: string };
   expert?: { fullName: string; specialty?: string };

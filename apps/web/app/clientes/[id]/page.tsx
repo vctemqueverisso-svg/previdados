@@ -24,9 +24,11 @@ type ClientDetail = {
     title: string;
     kind: string;
     attendanceDate: string;
+    ownerName?: string;
     contactChannel?: string;
     summary?: string;
-    nextSteps?: string;
+    clientReport?: string;
+    requestedDocuments?: string;
     case?: {
       id: string;
       internalCode: string;
@@ -197,8 +199,11 @@ export default async function ClientDetailPage({
               Aqui ficam os registros de conversa, orientacoes, estrategia juridica, documentos solicitados e proximos passos combinados com o cliente.
             </p>
           </div>
-          <Link href="/atendimentos" className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-3 text-sm font-medium text-ink hover:bg-slate-50">
-            Ir para atendimentos
+          <Link
+            href={`/atendimentos?clientId=${client.id}`}
+            className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-3 text-sm font-medium text-ink hover:bg-slate-50"
+          >
+            Novo atendimento para este cliente
           </Link>
         </div>
 
@@ -208,9 +213,11 @@ export default async function ClientDetailPage({
               <div key={item.id} className="rounded-[24px] border border-[rgba(24,38,63,0.08)] bg-[rgba(250,252,255,0.82)] p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <p className="text-lg font-semibold text-ink">{item.title}</p>
+                    <p className="text-lg font-semibold text-ink">
+                      {formatAttendanceKind(item.kind)} - {new Date(item.attendanceDate).toLocaleDateString("pt-BR")}
+                    </p>
                     <p className="mt-2 text-sm text-slate-600">
-                      {formatAttendanceKind(item.kind)} | {new Date(item.attendanceDate).toLocaleDateString("pt-BR")} | {item.contactChannel || "Canal nao informado"}
+                      {item.ownerName ? `Responsavel: ${item.ownerName}` : "Responsavel nao informado"}
                     </p>
                   </div>
                   <div className="rounded-full bg-[rgba(24,38,63,0.06)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
@@ -219,12 +226,12 @@ export default async function ClientDetailPage({
                 </div>
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   <div className="md:col-span-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Resumo</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-700">{item.summary || "Resumo ainda nao registrado."}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Relato do cliente</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">{item.clientReport || "Relato ainda nao registrado."}</p>
                   </div>
                   <div className="md:col-span-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Proximos passos</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-700">{item.nextSteps || "Sem proximos passos registrados."}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Documentos pendentes</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">{item.requestedDocuments || "Nenhum documento pendente registrado."}</p>
                   </div>
                 </div>
               </div>
@@ -244,7 +251,7 @@ export default async function ClientDetailPage({
               Cada caso concentra o andamento administrativo ou judicial, a linha do tempo processual e a estrategia aplicada.
             </p>
           </div>
-          <Link href="/casos" className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-3 text-sm font-medium text-ink hover:bg-slate-50">
+          <Link href={`/casos?clientId=${client.id}`} className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-3 text-sm font-medium text-ink hover:bg-slate-50">
             Ir para casos
           </Link>
         </div>

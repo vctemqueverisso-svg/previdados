@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Briefcase, FileText, Home, Menu, MessageSquare, Scale, ShieldCheck, Users, X } from "lucide-react";
+import { Briefcase, Home, Menu, MessageSquare, ShieldCheck, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "./utils";
 
@@ -11,9 +11,6 @@ const items = [
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/atendimentos", label: "Atendimentos", icon: MessageSquare },
   { href: "/casos", label: "Casos", icon: Briefcase },
-  { href: "/documentos", label: "Documentos", icon: FileText },
-  { href: "/peritos", label: "Peritos", icon: Scale },
-  { href: "/estatisticas", label: "Estatisticas", icon: BarChart3 },
   { href: "/seguranca", label: "LGPD", icon: ShieldCheck }
 ];
 

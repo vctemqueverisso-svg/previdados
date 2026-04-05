@@ -31,6 +31,10 @@ function formatAttendanceKind(value: string) {
   }
 }
 
+function getAttendanceHeading(attendance: AttendanceItem) {
+  return `${formatAttendanceKind(attendance.kind)} - ${new Date(attendance.attendanceDate).toLocaleDateString("pt-BR")}`;
+}
+
 function sortAttendances(attendances: AttendanceItem[]) {
   return [...attendances].sort((a, b) => new Date(b.attendanceDate).getTime() - new Date(a.attendanceDate).getTime());
 }
@@ -39,21 +43,30 @@ type Props = {
   initialAttendances: AttendanceItem[];
   clients: Client[];
   cases: CaseItem[];
+  lockedClientId?: string;
 };
 
-export function AttendanceRegistry({ initialAttendances, clients, cases }: Props) {
+export function AttendanceRegistry({ initialAttendances, clients, cases, lockedClientId }: Props) {
   const [attendances, setAttendances] = useState(() => sortAttendances(initialAttendances));
   const [editingAttendanceId, setEditingAttendanceId] = useState<string | null>(null);
   const [busyAttendanceId, setBusyAttendanceId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState(lockedClientId ?? "");
 
   const editingAttendance = useMemo(
     () => attendances.find((attendance) => attendance.id === editingAttendanceId) ?? null,
     [attendances, editingAttendanceId]
   );
+  const visibleAttendances = useMemo(() => {
+    if (!selectedClientId) {
+      return [];
+    }
+
+    return attendances.filter((attendance) => attendance.client.id === selectedClientId);
+  }, [attendances, selectedClientId]);
 
   async function handleDelete(attendance: AttendanceItem) {
-    if (!window.confirm(`Deseja realmente excluir o atendimento "${attendance.title}"?`)) {
+    if (!window.confirm(`Deseja realmente excluir o atendimento "${getAttendanceHeading(attendance)}"?`)) {
       return;
     }
 
@@ -89,7 +102,7 @@ export function AttendanceRegistry({ initialAttendances, clients, cases }: Props
             <p className="eyebrow">Edicao</p>
             <h3 className="mt-2 text-2xl font-semibold text-ink">Atualizar atendimento</h3>
             <p className="mt-2 text-sm text-[color:var(--text-soft)]">
-              Ajuste o registro da conversa, da estrategia e dos proximos passos sempre que o cliente retornar.
+              Ajuste o registro e mantenha o historico do cliente sempre claro.
             </p>
           </div>
           <CreateAttendanceForm
@@ -98,6 +111,7 @@ export function AttendanceRegistry({ initialAttendances, clients, cases }: Props
             initialValues={editingAttendance}
             clients={clientOptions}
             cases={caseOptions}
+            lockedClientId={lockedClientId}
             onCancel={() => {
               setEditingAttendanceId(null);
               setFeedback("");
@@ -113,21 +127,25 @@ export function AttendanceRegistry({ initialAttendances, clients, cases }: Props
         <CreateAttendanceForm
           clients={clientOptions}
           cases={caseOptions}
+          lockedClientId={lockedClientId}
+          onClientChange={setSelectedClientId}
           onSaved={(savedAttendance) => {
             setAttendances((current) => sortAttendances([savedAttendance, ...current]));
             setFeedback("Atendimento registrado com sucesso.");
+            setSelectedClientId(savedAttendance.client.id);
           }}
         />
       )}
 
+      {selectedClientId ? (
       <div className="space-y-4">
-        {attendances.map((attendance) => (
+        {visibleAttendances.map((attendance) => (
           <div key={attendance.id} className="card p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-lg font-semibold text-ink">{attendance.title}</p>
+                <p className="text-lg font-semibold text-ink">{getAttendanceHeading(attendance)}</p>
                 <p className="mt-2 text-sm text-slate-600">
-                  {formatAttendanceKind(attendance.kind)} | {new Date(attendance.attendanceDate).toLocaleDateString("pt-BR")} | {attendance.contactChannel || "Canal nao informado"}
+                  {attendance.ownerName ? `Responsavel: ${attendance.ownerName}` : "Registro vinculado ao historico do cliente."}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -161,42 +179,27 @@ export function AttendanceRegistry({ initialAttendances, clients, cases }: Props
                   </Link>
                 </p>
               </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Caso vinculado</p>
-                <p className="mt-2 text-sm text-slate-700">
-                  {attendance.case ? (
-                    <Link href={`/casos/${attendance.case.id}`} className="text-ink hover:text-gold">
-                      {attendance.case.internalCode}
-                    </Link>
-                  ) : (
-                    "Sem caso vinculado"
-                  )}
-                </p>
-              </div>
-              <div className="md:col-span-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Resumo</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{attendance.summary || "Resumo ainda nao registrado."}</p>
-              </div>
               <div className="md:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Relato do cliente</p>
                 <p className="mt-2 text-sm leading-6 text-slate-700">{attendance.clientReport || "Relato ainda nao registrado."}</p>
               </div>
               <div className="md:col-span-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Estrategia juridica</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{attendance.legalStrategy || "Estrategia ainda nao registrada."}</p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Documentos solicitados</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{attendance.requestedDocuments || "Nenhum documento solicitado."}</p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Proximos passos</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{attendance.nextSteps || "Sem proximos passos registrados."}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Documentos pendentes</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{attendance.requestedDocuments || "Nenhum documento pendente registrado."}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
+      ) : (
+        <div className="card p-5">
+          <p className="eyebrow">Historico</p>
+          <h3 className="mt-2 text-xl font-semibold text-ink">Selecione um cliente para visualizar os atendimentos</h3>
+          <p className="mt-2 text-sm text-[color:var(--text-soft)]">
+            O historico fica disponivel apenas quando o atendimento estiver sendo aberto para um cliente especifico.
+          </p>
+        </div>
+      )}
 
       {feedback ? <p className="text-sm text-[color:var(--text-soft)]">{feedback}</p> : null}
     </div>

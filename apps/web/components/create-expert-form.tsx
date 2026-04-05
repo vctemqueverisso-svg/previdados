@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getClientApiBaseUrl } from "../lib/client-api";
 
 function getTokenFromCookie() {
   const value = document.cookie
@@ -23,7 +24,7 @@ export function CreateExpertForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/experts`, {
+    await fetch(`${getClientApiBaseUrl()}/api/experts`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,4 +48,3 @@ export function CreateExpertForm() {
     </form>
   );
 }
-

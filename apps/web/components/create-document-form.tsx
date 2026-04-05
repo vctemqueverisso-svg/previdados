@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getClientApiBaseUrl } from "../lib/client-api";
 
 function getTokenFromCookie() {
   const value = document.cookie
@@ -41,7 +42,7 @@ export function CreateDocumentForm({ categories, clients, cases }: Props) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents`, {
+    await fetch(`${getClientApiBaseUrl()}/api/documents`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

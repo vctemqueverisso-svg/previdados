@@ -242,6 +242,7 @@ model Attendance {
   kind               AttendanceKind @default(CONSULTA_INICIAL)
   title              String
   attendanceDate     DateTime       @map("attendance_date")
+  ownerName          String?        @map("owner_name")
   contactChannel     String?        @map("contact_channel")
   summary            String?
   clientReport       String?        @map("client_report")
