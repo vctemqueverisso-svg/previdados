@@ -103,6 +103,7 @@ export function DeadlineWorkspace({
   initialDeadlines: DeadlineItem[];
 }) {
   const [deadlines, setDeadlines] = useState(initialDeadlines);
+  const [selectedClientId, setSelectedClientId] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
@@ -124,6 +125,14 @@ export function DeadlineWorkspace({
       overdue: overdue.length
     };
   }, [deadlines]);
+
+  const visibleDeadlines = useMemo(() => {
+    if (!selectedClientId) {
+      return deadlines;
+    }
+
+    return deadlines.filter((item) => item.client.id === selectedClientId);
+  }, [deadlines, selectedClientId]);
 
   async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -336,9 +345,23 @@ export function DeadlineWorkspace({
             Marque o prazo como cumprido, nao cumprido ou ainda pendente conforme a resposta do cliente.
           </p>
 
+          <div className="mt-5">
+            <label className="space-y-2">
+              <span className="block text-sm font-medium text-[color:var(--text-soft)]">Filtrar por cliente</span>
+              <select value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)}>
+                <option value="">Todos os clientes</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           <div className="mt-6 space-y-4">
-            {deadlines.length ? (
-              deadlines.map((deadline) => (
+            {visibleDeadlines.length ? (
+              visibleDeadlines.map((deadline) => (
                 <div
                   key={deadline.id}
                   className="rounded-[24px] border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.92)] px-5 py-5"
@@ -400,7 +423,9 @@ export function DeadlineWorkspace({
               ))
             ) : (
               <div className="rounded-[24px] border border-dashed border-[rgba(24,38,63,0.14)] bg-[rgba(248,251,255,0.7)] px-6 py-8 text-sm leading-7 text-slate-500">
-                Nenhum prazo registrado ainda. Use a caixa ao lado para criar a primeira pendencia da equipe.
+                {selectedClientId
+                  ? "Nenhum prazo encontrado para este cliente."
+                  : "Nenhum prazo registrado ainda. Use a caixa ao lado para criar a primeira pendencia da equipe."}
               </div>
             )}
           </div>
