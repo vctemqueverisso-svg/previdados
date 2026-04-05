@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AlertCircle, CheckCircle2, Clock3, FileStack } from "lucide-react";
 import { getClientApiBaseUrl } from "../lib/client-api";
 import { DeadlineItem } from "../lib/types";
 
@@ -47,6 +48,51 @@ function isOverdue(deadline: DeadlineItem) {
   today.setHours(0, 0, 0, 0);
 
   return dueDate < today;
+}
+
+function MetricTile({
+  label,
+  value,
+  helper,
+  icon,
+  accent = "light"
+}: {
+  label: string;
+  value: number;
+  helper: string;
+  icon: React.ReactNode;
+  accent?: "light" | "dark";
+}) {
+  return (
+    <div
+      className={
+        accent === "dark"
+          ? "rounded-[24px] border border-[rgba(24,38,63,0.08)] bg-[linear-gradient(180deg,rgba(21,34,56,0.98),rgba(17,28,46,0.98))] px-5 py-5 text-white"
+          : "rounded-[24px] border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.92)] px-5 py-5"
+      }
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className={accent === "dark" ? "text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-300" : "text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500"}>
+            {label}
+          </p>
+          <p className={accent === "dark" ? "mt-3 text-[2.35rem] font-semibold leading-none text-white" : "mt-3 text-[2.15rem] font-semibold leading-none text-ink"}>
+            {value}
+          </p>
+        </div>
+        <div
+          className={
+            accent === "dark"
+              ? "rounded-2xl bg-[rgba(255,255,255,0.08)] p-3 text-slate-100"
+              : "rounded-2xl bg-[rgba(24,38,63,0.06)] p-3 text-ink"
+          }
+        >
+          {icon}
+        </div>
+      </div>
+      <p className={accent === "dark" ? "mt-4 text-sm leading-6 text-slate-200" : "mt-4 text-sm leading-6 text-slate-600"}>{helper}</p>
+    </div>
+  );
 }
 
 export function DeadlineWorkspace({
@@ -150,19 +196,56 @@ export function DeadlineWorkspace({
   }
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-        <div className="card p-7">
-          <p className="eyebrow">Inicio</p>
-          <h1 className="mt-3 max-w-4xl text-[2.45rem] font-semibold leading-[0.96] tracking-[-0.04em] text-ink md:text-[3.4rem]">
-            Controle os prazos do escritorio antes que a urgencia vire problema.
-          </h1>
-          <p className="mt-4 max-w-3xl text-[15px] leading-7 text-slate-600">
-            Registre o que cada cliente ainda precisa juntar, defina o responsavel e acompanhe se o prazo foi cumprido ou nao.
+    <div className="space-y-5">
+      <section className="card px-6 py-6 md:px-8">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-3xl">
+            <p className="eyebrow">Inicio</p>
+            <h1 className="mt-3 text-[2.2rem] font-semibold leading-[0.96] tracking-[-0.04em] text-ink md:text-[3rem]">
+              Prazos do escritorio, sob controle.
+            </h1>
+            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-slate-600">
+              Use esta caixa para acompanhar o que cada cliente ainda precisa entregar, quem ficou responsavel e se a
+              pendencia foi resolvida no prazo.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3 xl:min-w-[720px]">
+            <MetricTile
+              label="Pendentes"
+              value={metrics.pending}
+              helper="Itens ainda sem conclusao."
+              icon={<FileStack className="h-5 w-5" />}
+              accent="dark"
+            />
+            <MetricTile
+              label="Em atraso"
+              value={metrics.overdue}
+              helper="Pendencias que passaram da data."
+              icon={<AlertCircle className="h-5 w-5" />}
+            />
+            <MetricTile
+              label="Cumpridos"
+              value={metrics.completed}
+              helper="Prazos ja resolvidos."
+              icon={<CheckCircle2 className="h-5 w-5" />}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
+        <div className="card p-6 md:p-7">
+          <p className="eyebrow">Novo prazo</p>
+          <h2 className="mt-2 text-[1.95rem] font-semibold leading-[1.02] tracking-[-0.03em] text-ink">
+            Registrar cobranca ou pendencia
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Cadastre uma tarefa objetiva, com cliente, data limite e responsavel definido.
           </p>
 
-          <form onSubmit={handleCreate} className="mt-6 grid gap-4 md:grid-cols-2">
-            <label className="space-y-2 md:col-span-2">
+          <form onSubmit={handleCreate} className="mt-6 grid gap-4">
+            <label className="space-y-2">
               <span className="block text-sm font-medium text-[color:var(--text-soft)]">Cliente</span>
               <select value={form.clientId} onChange={(e) => setForm({ ...form, clientId: e.target.value })} required>
                 <option value="">Selecione o cliente</option>
@@ -174,45 +257,53 @@ export function DeadlineWorkspace({
               </select>
             </label>
 
-            <label className="space-y-2 md:col-span-2">
+            <label className="space-y-2">
               <span className="block text-sm font-medium text-[color:var(--text-soft)]">Prazo ou pendencia</span>
               <input
+                className="min-h-[54px] text-[15px]"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Ex.: cliente deve juntar CNIS, RG e laudo medico"
+                placeholder="Ex.: juntar CNIS, RG, comprovante e laudo medico"
                 required
               />
             </label>
 
-            <label className="space-y-2">
-              <span className="block text-sm font-medium text-[color:var(--text-soft)]">Data limite</span>
-              <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} required />
-            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="space-y-2">
+                <span className="block text-sm font-medium text-[color:var(--text-soft)]">Data limite</span>
+                <input
+                  type="date"
+                  value={form.dueDate}
+                  onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                  required
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="block text-sm font-medium text-[color:var(--text-soft)]">Responsavel</span>
+                <select value={form.responsibleName} onChange={(e) => setForm({ ...form, responsibleName: e.target.value })}>
+                  {responsibleOptions.map((owner) => (
+                    <option key={owner} value={owner}>
+                      {owner}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
             <label className="space-y-2">
-              <span className="block text-sm font-medium text-[color:var(--text-soft)]">Responsavel</span>
-              <select value={form.responsibleName} onChange={(e) => setForm({ ...form, responsibleName: e.target.value })}>
-                {responsibleOptions.map((owner) => (
-                  <option key={owner} value={owner}>
-                    {owner}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="space-y-2 md:col-span-2">
               <span className="block text-sm font-medium text-[color:var(--text-soft)]">Observacoes</span>
               <textarea
-                className="min-h-[110px]"
+                className="min-h-[220px]"
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Ex.: cliente vai mandar os exames pelo WhatsApp e assinar procuração ate a data limite."
+                placeholder="Ex.: cliente vai mandar os exames pelo WhatsApp e assinar a procuracao ate a data limite."
               />
             </label>
 
-            {error ? <p className="text-sm text-[#8b3a3a] md:col-span-2">{error}</p> : null}
+            {error ? <p className="text-sm text-[#8b3a3a]">{error}</p> : null}
 
-            <div className="md:col-span-2">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="submit"
                 disabled={saving}
@@ -220,109 +311,99 @@ export function DeadlineWorkspace({
               >
                 {saving ? "Salvando..." : "Registrar prazo"}
               </button>
+              <div className="rounded-2xl border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.8)] px-4 py-3 text-sm text-slate-600">
+                Sempre registre uma pendencia por vez.
+              </div>
             </div>
           </form>
         </div>
 
-        <div className="card p-7">
-          <p className="eyebrow">Leitura rapida</p>
-          <div className="mt-5 grid gap-4">
-            <div className="rounded-[24px] border border-[rgba(24,38,63,0.08)] bg-[linear-gradient(180deg,rgba(21,34,56,0.98),rgba(17,28,46,0.98))] px-5 py-5 text-white">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-300">Pendencias abertas</p>
-              <p className="mt-3 text-[2.4rem] font-semibold leading-none">{metrics.pending}</p>
-              <p className="mt-3 text-sm leading-6 text-slate-200">Prazos ainda sem conclusao na mesa do escritorio.</p>
+        <div className="card p-6 md:p-7">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="eyebrow">Painel</p>
+              <h2 className="mt-2 text-[1.95rem] font-semibold leading-[1.02] tracking-[-0.03em] text-ink">
+                Controle por cliente
+              </h2>
             </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-[24px] border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.92)] px-5 py-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Em atraso</p>
-                <p className="mt-3 text-[2rem] font-semibold leading-none text-ink">{metrics.overdue}</p>
-                <p className="mt-3 text-sm text-slate-600">Prazos que passaram da data limite.</p>
-              </div>
-              <div className="rounded-[24px] border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.92)] px-5 py-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Cumpridos</p>
-                <p className="mt-3 text-[2rem] font-semibold leading-none text-ink">{metrics.completed}</p>
-                <p className="mt-3 text-sm text-slate-600">Pendencias ja resolvidas.</p>
-              </div>
+            <div className="rounded-2xl border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.92)] px-4 py-3 text-sm text-slate-600">
+              <Clock3 className="mr-2 inline h-4 w-4 align-[-2px]" />
+              {deadlines.length} registro{deadlines.length === 1 ? "" : "s"}
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="card p-6">
-        <p className="eyebrow">Prazos</p>
-        <h2 className="mt-2 text-[2rem] font-semibold leading-[1.02] tracking-[-0.03em] text-ink">Controle por cliente</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Marque se o prazo foi cumprido, nao cumprido ou se ainda esta pendente, sempre com o responsavel bem definido.
-        </p>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Marque o prazo como cumprido, nao cumprido ou ainda pendente conforme a resposta do cliente.
+          </p>
 
-        <div className="mt-6 space-y-4">
-          {deadlines.length ? (
-            deadlines.map((deadline) => (
-              <div
-                key={deadline.id}
-                className="rounded-[24px] border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.92)] px-5 py-5"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-lg font-semibold text-ink">{deadline.title}</h3>
-                      <span
-                        className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${statusMeta[deadline.status].badge}`}
-                      >
-                        {statusMeta[deadline.status].label}
-                      </span>
-                      {isOverdue(deadline) ? (
-                        <span className="rounded-full border border-[rgba(143,58,58,0.18)] bg-[rgba(255,242,242,0.95)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a3a]">
-                          Em atraso
+          <div className="mt-6 space-y-4">
+            {deadlines.length ? (
+              deadlines.map((deadline) => (
+                <div
+                  key={deadline.id}
+                  className="rounded-[24px] border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.92)] px-5 py-5"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="text-lg font-semibold text-ink">{deadline.title}</h3>
+                        <span
+                          className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${statusMeta[deadline.status].badge}`}
+                        >
+                          {statusMeta[deadline.status].label}
                         </span>
-                      ) : null}
+                        {isOverdue(deadline) ? (
+                          <span className="rounded-full border border-[rgba(143,58,58,0.18)] bg-[rgba(255,242,242,0.95)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a3a]">
+                            Em atraso
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-2 text-sm text-slate-600">
+                        <strong className="font-medium text-ink">{deadline.client.fullName}</strong> · ate {formatDate(deadline.dueDate)} · responsavel:{" "}
+                        {deadline.responsibleName}
+                      </p>
+                      {deadline.notes ? <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{deadline.notes}</p> : null}
                     </div>
-                    <p className="mt-2 text-sm text-slate-600">
-                      <strong className="font-medium text-ink">{deadline.client.fullName}</strong> · ate {formatDate(deadline.dueDate)} · responsavel:{" "}
-                      {deadline.responsibleName}
-                    </p>
-                    {deadline.notes ? <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{deadline.notes}</p> : null}
-                  </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateStatus(deadline.id, "CUMPRIDO")}
-                      className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-slate-50"
-                    >
-                      Cumprido
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateStatus(deadline.id, "NAO_CUMPRIDO")}
-                      className="rounded-xl border border-[rgba(140,45,45,0.14)] bg-[rgba(255,242,242,0.95)] px-4 py-2 text-sm font-medium text-[#8b3a3a] hover:bg-[rgba(255,235,235,1)]"
-                    >
-                      Nao cumprido
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateStatus(deadline.id, "PENDENTE")}
-                      className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-slate-50"
-                    >
-                      Voltar para pendente
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeDeadline(deadline.id)}
-                      className="rounded-xl border border-[rgba(140,45,45,0.14)] bg-white px-4 py-2 text-sm font-medium text-[#8b3a3a] hover:bg-[rgba(255,242,242,1)]"
-                    >
-                      Excluir
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(deadline.id, "CUMPRIDO")}
+                        className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-slate-50"
+                      >
+                        Cumprido
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(deadline.id, "NAO_CUMPRIDO")}
+                        className="rounded-xl border border-[rgba(140,45,45,0.14)] bg-[rgba(255,242,242,0.95)] px-4 py-2 text-sm font-medium text-[#8b3a3a] hover:bg-[rgba(255,235,235,1)]"
+                      >
+                        Nao cumprido
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(deadline.id, "PENDENTE")}
+                        className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-slate-50"
+                      >
+                        Voltar para pendente
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeDeadline(deadline.id)}
+                        className="rounded-xl border border-[rgba(140,45,45,0.14)] bg-white px-4 py-2 text-sm font-medium text-[#8b3a3a] hover:bg-[rgba(255,242,242,1)]"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="rounded-[24px] border border-dashed border-[rgba(24,38,63,0.14)] bg-[rgba(248,251,255,0.7)] px-6 py-8 text-sm leading-7 text-slate-500">
+                Nenhum prazo registrado ainda. Use a caixa ao lado para criar a primeira pendencia da equipe.
               </div>
-            ))
-          ) : (
-            <div className="rounded-[24px] border border-dashed border-[rgba(24,38,63,0.14)] bg-[rgba(248,251,255,0.7)] px-6 py-8 text-sm leading-7 text-slate-500">
-              Nenhum prazo registrado ainda. Use a caixa acima para criar a primeira pendencia da equipe.
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </section>
     </div>
