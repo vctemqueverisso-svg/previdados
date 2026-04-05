@@ -11,6 +11,7 @@ import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { TaxonomyModule } from "./modules/taxonomy/taxonomy.module";
 import { AttendancesModule } from "./modules/attendances/attendances.module";
 import { DeadlinesModule } from "./modules/deadlines/deadlines.module";
+import { FinanceModule } from "./modules/finance/finance.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { DeadlinesModule } from "./modules/deadlines/deadlines.module";
     DocumentsModule,
     AttendancesModule,
     DeadlinesModule,
+    FinanceModule,
     DashboardModule,
     TaxonomyModule
   ]

@@ -26,6 +26,29 @@ export type DeadlineItem = {
   client: { id: string; fullName: string };
 };
 
+export type FinancialControlItem = {
+  id: string;
+  minimumWageAmount: string | number;
+  installmentPercentage: string | number;
+  projectedBenefitMonths?: number | null;
+  plannedInstallments: number;
+  paidInstallments: number;
+  installmentValue: string | number;
+  arrearsAmount?: string | number | null;
+  arrearsPercentage: string | number;
+  arrearsFeeValue?: string | number | null;
+  arrearsFeePaidAmount?: string | number | null;
+  notes?: string | null;
+  case: {
+    id: string;
+    internalCode: string;
+    caseNumber?: string | null;
+    channelType: string;
+    benefitType: string;
+    client: { id: string; fullName: string };
+  };
+};
+
 export type Client = {
   id: string;
   fullName: string;

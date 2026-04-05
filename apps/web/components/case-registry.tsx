@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { getClientApiBaseUrl } from "../lib/client-api";
 import { CaseItem } from "../lib/types";
 import { CreateCaseForm } from "./create-case-form";
 
@@ -20,7 +21,17 @@ function formatOutcome(item: CaseItem) {
   return item.result?.finalOutcome || item.currentStatus;
 }
 
+function getTokenFromCookie() {
+  return (
+    document.cookie
+      .split("; ")
+      .find((item) => item.startsWith("token="))
+      ?.split("=")[1] ?? ""
+  );
+}
+
 export function CaseRegistry({ initialCases, clients, diseases, cids, experts, lockedClientId }: Props) {
+  const [cases, setCases] = useState(initialCases);
   const [selectedClientId, setSelectedClientId] = useState(lockedClientId ?? "");
 
   const visibleCases = useMemo(() => {
@@ -28,8 +39,29 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
       return [];
     }
 
-    return initialCases.filter((item) => item.client.id === selectedClientId);
-  }, [initialCases, selectedClientId]);
+    return cases.filter((item) => item.client.id === selectedClientId);
+  }, [cases, selectedClientId]);
+
+  async function removeCase(id: string) {
+    const confirmed = window.confirm("Deseja mesmo excluir este caso?");
+    if (!confirmed) {
+      return;
+    }
+
+    const response = await fetch(`${getClientApiBaseUrl()}/api/cases/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${getTokenFromCookie()}`
+      }
+    });
+
+    if (!response.ok) {
+      window.alert("Nao foi possivel excluir o caso.");
+      return;
+    }
+
+    setCases((current) => current.filter((item) => item.id !== id));
+  }
 
   return (
     <div className="space-y-6">
@@ -50,10 +82,11 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
                 <th>Caso</th>
                 <th>Cliente</th>
                 <th>Via</th>
-                <th>Benefício</th>
-                <th>Doença/CID</th>
+                <th>Beneficio</th>
+                <th>Doenca/CID</th>
                 <th>Perito</th>
                 <th>Resultado</th>
+                <th>Acoes</th>
               </tr>
             </thead>
             <tbody>
@@ -71,6 +104,23 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
                   <td>{[item.mainDisease?.name, item.mainCid?.code].filter(Boolean).join(" / ") || "-"}</td>
                   <td>{item.expert?.fullName || "-"}</td>
                   <td>{formatOutcome(item)}</td>
+                  <td>
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/casos/${item.id}`}
+                        className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-3 py-2 text-xs font-medium text-ink hover:bg-slate-50"
+                      >
+                        Ver
+                      </Link>
+                      <button
+                        type="button"
+                        className="rounded-xl border border-[rgba(140,45,45,0.14)] bg-white px-3 py-2 text-xs font-medium text-[#8b3a3a] hover:bg-[rgba(255,242,242,1)]"
+                        onClick={() => removeCase(item.id)}
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -78,10 +128,10 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
         </div>
       ) : (
         <div className="card p-5">
-          <p className="eyebrow">Histórico</p>
+          <p className="eyebrow">Historico</p>
           <h3 className="mt-2 text-xl font-semibold text-ink">Selecione um cliente para visualizar os casos</h3>
           <p className="mt-2 text-sm text-[color:var(--text-soft)]">
-            Os processos já cadastrados aparecem somente quando o caso estiver sendo aberto para um cliente específico.
+            Os processos ja cadastrados aparecem somente quando o caso estiver sendo aberto para um cliente especifico.
           </p>
         </div>
       )}

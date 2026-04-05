@@ -135,6 +135,7 @@ model User {
   updatedAt      DateTime    @updatedAt @map("updated_at")
   clientsCreated Client[]
   casesCreated   Case[]
+  financialControls FinancialControl[]
   uploads        Document[]  @relation("documents_uploaded_by")
   attendances    Attendance[]
   deadlines      Deadline[]
@@ -241,6 +242,30 @@ model Case {
   internalNotes          InternalNote[]
   result                 CaseResult?
   attendances            Attendance[]
+  financialControl       FinancialControl?
+}
+
+model FinancialControl {
+  id                   String   @id @default(cuid())
+  caseId               String   @unique @map("case_id")
+  minimumWageAmount    Decimal  @db.Decimal(12, 2) @default(1621.00) @map("minimum_wage_amount")
+  installmentPercentage Decimal @db.Decimal(5, 2) @default(30.00) @map("installment_percentage")
+  projectedBenefitMonths Int?   @map("projected_benefit_months")
+  plannedInstallments  Int      @default(0) @map("planned_installments")
+  paidInstallments     Int      @default(0) @map("paid_installments")
+  installmentValue     Decimal  @db.Decimal(12, 2) @map("installment_value")
+  arrearsAmount        Decimal? @db.Decimal(12, 2) @map("arrears_amount")
+  arrearsPercentage    Decimal  @db.Decimal(5, 2) @default(30.00) @map("arrears_percentage")
+  arrearsFeeValue      Decimal? @db.Decimal(12, 2) @map("arrears_fee_value")
+  arrearsFeePaidAmount Decimal? @db.Decimal(12, 2) @map("arrears_fee_paid_amount")
+  notes                String?
+  createdByUserId      String   @map("created_by_user_id")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  case                 Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy            User     @relation(fields: [createdByUserId], references: [id])
+
+  @@index([caseId])
 }
 
 model Attendance {
