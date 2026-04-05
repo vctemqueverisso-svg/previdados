@@ -24,7 +24,9 @@ export class ClientsService {
             OR: [
               { fullName: { contains: search, mode: "insensitive" } },
               { cpf: { contains: search } },
-              { city: { contains: search, mode: "insensitive" } }
+              { city: { contains: search, mode: "insensitive" } },
+              { street: { contains: search, mode: "insensitive" } },
+              { neighborhood: { contains: search, mode: "insensitive" } }
             ]
           }
         : undefined,
@@ -53,6 +55,17 @@ export class ClientsService {
           },
           orderBy: { createdAt: "desc" }
         },
+        attendances: {
+          include: {
+            case: {
+              select: {
+                id: true,
+                internalCode: true
+              }
+            }
+          },
+          orderBy: { attendanceDate: "desc" }
+        },
         documents: {
           include: { category: true },
           orderBy: { createdAt: "desc" }
@@ -75,4 +88,3 @@ export class ClientsService {
     return this.prisma.client.delete({ where: { id } });
   }
 }
-

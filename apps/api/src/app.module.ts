@@ -9,6 +9,7 @@ import { CasesModule } from "./modules/cases/cases.module";
 import { DocumentsModule } from "./modules/documents/documents.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { TaxonomyModule } from "./modules/taxonomy/taxonomy.module";
+import { AttendancesModule } from "./modules/attendances/attendances.module";
 
 @Module({
   imports: [
@@ -20,9 +21,9 @@ import { TaxonomyModule } from "./modules/taxonomy/taxonomy.module";
     ExpertsModule,
     CasesModule,
     DocumentsModule,
+    AttendancesModule,
     DashboardModule,
     TaxonomyModule
   ]
 })
 export class AppModule {}
-

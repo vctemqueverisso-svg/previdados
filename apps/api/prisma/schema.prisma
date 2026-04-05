@@ -109,6 +109,14 @@ enum IncapacityDuration {
   NAO_INFORMADO
 }
 
+enum AttendanceKind {
+  CONSULTA_INICIAL
+  RETORNO
+  TRIAGEM_DOCUMENTAL
+  ESTRATEGIA_PROCESSUAL
+  POS_DECISAO
+}
+
 model User {
   id             String      @id @default(cuid())
   name           String
@@ -122,6 +130,7 @@ model User {
   clientsCreated Client[]
   casesCreated   Case[]
   uploads        Document[]  @relation("documents_uploaded_by")
+  attendances    Attendance[]
   auditLogs      AuditLog[]
 }
 
@@ -133,6 +142,11 @@ model Client {
   gender          Gender     @default(NAO_INFORMADO)
   phone           String?
   email           String?
+  zipCode         String?    @map("zip_code")
+  street          String?
+  addressNumber   String?    @map("address_number")
+  neighborhood    String?
+  complement      String?
   city            String?
   state           String?
   notes           String?
@@ -142,6 +156,7 @@ model Client {
   createdBy       User       @relation(fields: [createdByUserId], references: [id])
   cases           Case[]
   documents       Document[]
+  attendances     Attendance[]
 }
 
 model Disease {
@@ -217,6 +232,31 @@ model Case {
   proceduralEvents       ProceduralEvent[]
   internalNotes          InternalNote[]
   result                 CaseResult?
+  attendances            Attendance[]
+}
+
+model Attendance {
+  id                 String         @id @default(cuid())
+  clientId           String         @map("client_id")
+  caseId             String?        @map("case_id")
+  kind               AttendanceKind @default(CONSULTA_INICIAL)
+  title              String
+  attendanceDate     DateTime       @map("attendance_date")
+  contactChannel     String?        @map("contact_channel")
+  summary            String?
+  clientReport       String?        @map("client_report")
+  legalStrategy      String?        @map("legal_strategy")
+  requestedDocuments String?        @map("requested_documents")
+  nextSteps          String?        @map("next_steps")
+  createdByUserId    String         @map("created_by_user_id")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  client             Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  case               Case?          @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  createdBy          User           @relation(fields: [createdByUserId], references: [id])
+
+  @@index([clientId, attendanceDate])
+  @@index([caseId, attendanceDate])
 }
 
 model CaseSecondaryDisease {
@@ -361,4 +401,3 @@ model AuditLog {
   createdAt  DateTime @default(now()) @map("created_at")
   user       User     @relation(fields: [userId], references: [id])
 }
-

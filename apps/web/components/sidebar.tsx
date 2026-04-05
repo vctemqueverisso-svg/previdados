@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Briefcase, FileText, Home, Menu, Scale, ShieldCheck, Users, X } from "lucide-react";
+import { BarChart3, Briefcase, FileText, Home, Menu, MessageSquare, Scale, ShieldCheck, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "./utils";
 
 const items = [
-  { href: "/", label: "Início", icon: Home },
+  { href: "/", label: "Inicio", icon: Home },
   { href: "/clientes", label: "Clientes", icon: Users },
+  { href: "/atendimentos", label: "Atendimentos", icon: MessageSquare },
   { href: "/casos", label: "Casos", icon: Briefcase },
   { href: "/documentos", label: "Documentos", icon: FileText },
   { href: "/peritos", label: "Peritos", icon: Scale },
-  { href: "/estatisticas", label: "Estatísticas", icon: BarChart3 },
+  { href: "/estatisticas", label: "Estatisticas", icon: BarChart3 },
   { href: "/seguranca", label: "LGPD", icon: ShieldCheck }
 ];
 
@@ -65,10 +66,10 @@ export function Sidebar() {
           </div>
           <div className="mt-4 rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))] px-4 py-4">
             <p className="text-[10px] uppercase tracking-[0.28em] text-slate-400">Plataforma</p>
-            <h1 className="mt-3 text-[1.24rem] font-semibold leading-[1.04] tracking-[-0.02em]">Inteligência previdenciária aplicada</h1>
+            <h1 className="mt-3 text-[1.24rem] font-semibold leading-[1.04] tracking-[-0.02em]">Inteligencia previdenciaria aplicada</h1>
           </div>
           <p className="mt-3 text-[13px] leading-6 text-slate-300">
-            Operação jurídica, base documental e leitura estatística em um só lugar.
+            Operacao juridica, base documental e leitura estatistica em um so lugar.
           </p>
         </div>
 
@@ -102,7 +103,7 @@ export function Sidebar() {
         <div className="mt-3 rounded-[18px] border border-white/10 bg-white/[0.04] p-3">
           <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Objetivo</p>
           <p className="mt-2 text-[12px] leading-5 text-slate-200">
-            Organizar casos, comparar padrões periciais e sustentar decisões jurídicas com mais clareza e previsibilidade.
+            Organizar clientes, registrar atendimentos e acompanhar casos com mais clareza e previsibilidade.
           </p>
         </div>
       </aside>

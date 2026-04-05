@@ -9,6 +9,10 @@ type CaseDetail = {
   channelType: string;
   benefitType: string;
   currentStatus: string;
+  protocolDate?: string;
+  derDate?: string;
+  expertExamDate?: string;
+  decisionDate?: string;
   strategySummary?: string;
   courtAgencyName?: string;
   courtDivision?: string;
@@ -18,9 +22,10 @@ type CaseDetail = {
   ageAtFiling?: number;
   familyIncome?: string;
   familyGroupDescription?: string;
-  client: { fullName: string; cpf: string; city?: string; state?: string };
+  client: { id: string; fullName: string; cpf: string; city?: string; state?: string };
   mainDisease?: { name: string };
   mainCid?: { code: string; description: string };
+  secondaryCids: { cid: { code: string; description: string } }[];
   expert?: { fullName: string; specialty?: string };
   documents: { id: string; originalFileName: string; category: { name: string } }[];
   proceduralEvents: { id: string; eventType: string; eventDate: string; description?: string }[];
@@ -51,7 +56,7 @@ const tabs = [
   ["documentos", "Documentos"],
   ["historico", "Historico"],
   ["pericias", "Pericias"],
-  ["estrategia", "Estrategia"],
+  ["estrategia", "Atendimento e estrategia"],
   ["resultado", "Resultado"],
   ["estatisticas", "Estatisticas relacionadas"]
 ] as const;
@@ -67,6 +72,22 @@ export default async function CaseDetailPage({
   const resolvedSearchParams = (await searchParams) ?? {};
   const tab = typeof resolvedSearchParams.tab === "string" ? resolvedSearchParams.tab : "resumo";
   const data = await apiGet<CaseDetail>(`/cases/${id}`);
+  const milestoneEvents = [
+    data.derDate ? { id: "der", eventType: "DER", eventDate: data.derDate, description: "Data de entrada do requerimento." } : null,
+    data.protocolDate ? { id: "protocolo-base", eventType: "PROTOCOLO", eventDate: data.protocolDate, description: "Marco principal do protocolo do caso." } : null,
+    data.expertExamDate
+      ? {
+          id: "pericia-base",
+          eventType: data.channelType === "JUDICIAL" ? "PERÍCIA JUDICIAL" : "PERÍCIA ADMINISTRATIVA",
+          eventDate: data.expertExamDate,
+          description: "Data principal da perícia considerada para acompanhamento e estatística."
+        }
+      : null,
+    data.decisionDate ? { id: "decisao-base", eventType: "DECISÃO", eventDate: data.decisionDate, description: "Data principal da decisão do caso." } : null
+  ].filter(Boolean) as { id: string; eventType: string; eventDate: string; description?: string }[];
+
+  const timeline = [...milestoneEvents, ...data.proceduralEvents]
+    .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
 
   return (
     <div>
@@ -105,6 +126,14 @@ export default async function CaseDetailPage({
                 <dd>{data.mainCid ? `${data.mainCid.code} - ${data.mainCid.description}` : "-"}</dd>
               </div>
               <div>
+                <dt className="font-medium">CIDs complementares</dt>
+                <dd>
+                  {data.secondaryCids.length
+                    ? data.secondaryCids.map((item) => `${item.cid.code} - ${item.cid.description}`).join(" | ")
+                    : "-"}
+                </dd>
+              </div>
+              <div>
                 <dt className="font-medium">Perito</dt>
                 <dd>{data.expert?.fullName || "-"}</dd>
               </div>
@@ -120,7 +149,11 @@ export default async function CaseDetailPage({
             <dl className="mt-4 space-y-3 text-sm text-stone-700">
               <div>
                 <dt className="font-medium">Cliente</dt>
-                <dd>{data.client.fullName}</dd>
+                <dd>
+                  <Link href={`/clientes/${data.client.id}`} className="text-ink hover:text-gold">
+                    {data.client.fullName}
+                  </Link>
+                </dd>
               </div>
               <div>
                 <dt className="font-medium">CPF</dt>
@@ -164,9 +197,27 @@ export default async function CaseDetailPage({
       {tab === "historico" ? (
         <section className="card p-5">
           <h3 className="text-lg font-semibold">Linha do tempo processual</h3>
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
+            <div className="rounded-2xl border border-stone-200 px-4 py-3 text-sm">
+              <div className="font-medium">DER</div>
+              <div className="text-stone-500">{data.derDate ? new Date(data.derDate).toLocaleDateString("pt-BR") : "-"}</div>
+            </div>
+            <div className="rounded-2xl border border-stone-200 px-4 py-3 text-sm">
+              <div className="font-medium">Protocolo</div>
+              <div className="text-stone-500">{data.protocolDate ? new Date(data.protocolDate).toLocaleDateString("pt-BR") : "-"}</div>
+            </div>
+            <div className="rounded-2xl border border-stone-200 px-4 py-3 text-sm">
+              <div className="font-medium">Perícia</div>
+              <div className="text-stone-500">{data.expertExamDate ? new Date(data.expertExamDate).toLocaleDateString("pt-BR") : "-"}</div>
+            </div>
+            <div className="rounded-2xl border border-stone-200 px-4 py-3 text-sm">
+              <div className="font-medium">Decisão</div>
+              <div className="text-stone-500">{data.decisionDate ? new Date(data.decisionDate).toLocaleDateString("pt-BR") : "-"}</div>
+            </div>
+          </div>
           <div className="mt-4 space-y-3">
-            {data.proceduralEvents.length ? (
-              data.proceduralEvents.map((item) => (
+            {timeline.length ? (
+              timeline.map((item) => (
                 <div key={item.id} className="rounded-xl border border-stone-200 px-4 py-3 text-sm">
                   <div className="font-medium">{item.eventType}</div>
                   <div className="text-stone-500">{new Date(item.eventDate).toLocaleDateString("pt-BR")}</div>
@@ -191,9 +242,9 @@ export default async function CaseDetailPage({
 
       {tab === "estrategia" ? (
         <section className="card p-5">
-          <h3 className="text-lg font-semibold">Estrategia interna</h3>
+          <h3 className="text-lg font-semibold">Atendimento e estrategia</h3>
           <div className="mt-4 space-y-3 text-sm text-stone-700">
-            <p><strong>Sintese:</strong> {data.strategySummary || "-"}</p>
+            <p><strong>Síntese do atendimento:</strong> {data.strategySummary || "-"}</p>
             <p><strong>Forca da prova:</strong> {data.internalNotes[0]?.strengthOfMedicalEvidence || "-"}</p>
             <p><strong>Obstaculo principal:</strong> {data.internalNotes[0]?.mainObstacle || "-"}</p>
             <p><strong>Tese principal:</strong> {data.internalNotes[0]?.mainThesis || "-"}</p>

@@ -19,11 +19,34 @@ export type Client = {
   id: string;
   fullName: string;
   cpf: string;
+  birthDate: string;
+  gender: string;
   phone?: string;
   email?: string;
+  zipCode?: string;
+  street?: string;
+  addressNumber?: string;
+  neighborhood?: string;
+  complement?: string;
   city?: string;
   state?: string;
+  notes?: string;
   cases?: { id: string; internalCode: string; benefitType: string; currentStatus: string }[];
+};
+
+export type AttendanceItem = {
+  id: string;
+  title: string;
+  kind: string;
+  attendanceDate: string;
+  contactChannel?: string;
+  summary?: string;
+  clientReport?: string;
+  legalStrategy?: string;
+  requestedDocuments?: string;
+  nextSteps?: string;
+  client: { id: string; fullName: string };
+  case?: { id: string; internalCode: string } | null;
 };
 
 export type Expert = {
@@ -71,4 +94,3 @@ export type DocumentItem = {
     hasIncapacity?: boolean;
   }[];
 };
-
