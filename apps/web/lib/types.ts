@@ -15,6 +15,17 @@ export type DashboardResponse = {
   outcomeByDisease: { label: string; success: number; failure: number }[];
 };
 
+export type DeadlineItem = {
+  id: string;
+  title: string;
+  dueDate: string;
+  responsibleName: string;
+  status: "PENDENTE" | "CUMPRIDO" | "NAO_CUMPRIDO";
+  notes?: string;
+  completedAt?: string | null;
+  client: { id: string; fullName: string };
+};
+
 export type Client = {
   id: string;
   fullName: string;

@@ -117,6 +117,12 @@ enum AttendanceKind {
   POS_DECISAO
 }
 
+enum DeadlineStatus {
+  PENDENTE
+  CUMPRIDO
+  NAO_CUMPRIDO
+}
+
 model User {
   id             String      @id @default(cuid())
   name           String
@@ -131,6 +137,7 @@ model User {
   casesCreated   Case[]
   uploads        Document[]  @relation("documents_uploaded_by")
   attendances    Attendance[]
+  deadlines      Deadline[]
   auditLogs      AuditLog[]
 }
 
@@ -157,6 +164,7 @@ model Client {
   cases           Case[]
   documents       Document[]
   attendances     Attendance[]
+  deadlines       Deadline[]
 }
 
 model Disease {
@@ -258,6 +266,25 @@ model Attendance {
 
   @@index([clientId, attendanceDate])
   @@index([caseId, attendanceDate])
+}
+
+model Deadline {
+  id              String         @id @default(cuid())
+  clientId        String         @map("client_id")
+  title           String
+  dueDate         DateTime       @map("due_date")
+  responsibleName String         @map("responsible_name")
+  status          DeadlineStatus @default(PENDENTE)
+  notes           String?
+  completedAt     DateTime?      @map("completed_at")
+  createdByUserId String         @map("created_by_user_id")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  client          Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy       User           @relation(fields: [createdByUserId], references: [id])
+
+  @@index([clientId, dueDate])
+  @@index([status, dueDate])
 }
 
 model CaseSecondaryDisease {

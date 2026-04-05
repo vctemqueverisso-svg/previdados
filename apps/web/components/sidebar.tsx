@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Briefcase, Home, Menu, MessageSquare, ShieldCheck, Users, X } from "lucide-react";
+import { BarChart3, Briefcase, Home, LogOut, Menu, MessageSquare, ShieldCheck, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "./utils";
 
@@ -11,12 +11,18 @@ const items = [
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/atendimentos", label: "Atendimentos", icon: MessageSquare },
   { href: "/casos", label: "Casos", icon: Briefcase },
+  { href: "/estatisticas", label: "Estatisticas", icon: BarChart3 },
   { href: "/seguranca", label: "LGPD", icon: ShieldCheck }
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  function handleLogout() {
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+    window.location.href = "/login";
+  }
 
   useEffect(() => {
     setOpen(false);
@@ -97,11 +103,24 @@ export function Sidebar() {
           })}
         </nav>
 
-        <div className="mt-3 rounded-[18px] border border-white/10 bg-white/[0.04] p-3">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Objetivo</p>
-          <p className="mt-2 text-[12px] leading-5 text-slate-200">
-            Organizar clientes, registrar atendimentos e acompanhar casos com mais clareza e previsibilidade.
-          </p>
+        <div className="mt-3 space-y-2">
+          <div className="rounded-[18px] border border-white/10 bg-white/[0.04] p-3">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Objetivo</p>
+            <p className="mt-2 text-[12px] leading-5 text-slate-200">
+              Organizar clientes, registrar atendimentos e acompanhar casos com mais clareza e previsibilidade.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-[18px] border border-white/10 bg-white/[0.04] px-3.5 py-3 text-left text-sm text-slate-200 hover:bg-white/[0.08]"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-300">
+              <LogOut className="h-4 w-4" />
+            </span>
+            <span className="font-medium tracking-[0.01em]">Sair</span>
+          </button>
         </div>
       </aside>
     </>

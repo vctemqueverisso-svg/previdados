@@ -107,3 +107,9 @@ export enum AttendanceKind {
   ESTRATEGIA_PROCESSUAL = "ESTRATEGIA_PROCESSUAL",
   POS_DECISAO = "POS_DECISAO"
 }
+
+export enum DeadlineStatus {
+  PENDENTE = "PENDENTE",
+  CUMPRIDO = "CUMPRIDO",
+  NAO_CUMPRIDO = "NAO_CUMPRIDO"
+}

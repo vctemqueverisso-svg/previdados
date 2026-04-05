@@ -61,12 +61,6 @@ export default function LoginPage() {
         </form>
 
         {error ? <p className="mt-4 rounded-2xl bg-[#fff1f1] px-4 py-3 text-sm text-[#8c2a2a]">{error}</p> : null}
-
-        <div className="mt-6 rounded-2xl bg-sand p-4 text-sm text-stone-600">
-          Usuario seed: <strong>admin@jcprevdados.local</strong>
-          <br />
-          Senha seed: <strong>admin123</strong>
-        </div>
       </div>
     </div>
   );

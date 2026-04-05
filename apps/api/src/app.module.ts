@@ -10,6 +10,7 @@ import { DocumentsModule } from "./modules/documents/documents.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { TaxonomyModule } from "./modules/taxonomy/taxonomy.module";
 import { AttendancesModule } from "./modules/attendances/attendances.module";
+import { DeadlinesModule } from "./modules/deadlines/deadlines.module";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AttendancesModule } from "./modules/attendances/attendances.module";
     CasesModule,
     DocumentsModule,
     AttendancesModule,
+    DeadlinesModule,
     DashboardModule,
     TaxonomyModule
   ]
