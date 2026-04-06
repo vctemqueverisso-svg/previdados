@@ -167,6 +167,14 @@ export class CreateCaseDto {
 
   @IsOptional()
   @IsString()
+  expertName?: string;
+
+  @IsOptional()
+  @IsString()
+  expertRegistryNumber?: string;
+
+  @IsOptional()
+  @IsString()
   courtAgencyName?: string;
 
   @IsOptional()

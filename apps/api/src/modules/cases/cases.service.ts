@@ -1,9 +1,9 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateCaseDto } from "./dto/create-case.dto";
 import { UpdateCaseDto } from "./dto/update-case.dto";
 import { CaseFiltersDto } from "./dto/case-filters.dto";
-import { ProceduralEventType as PrismaProceduralEventType } from "@prisma/client";
+import { Prisma, ProceduralEventType as PrismaProceduralEventType } from "@prisma/client";
 
 function toDate(value?: string) {
   return value ? new Date(value) : undefined;
@@ -13,77 +13,133 @@ function toDate(value?: string) {
 export class CasesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateCaseDto, userId: string) {
-    return this.prisma.case.create({
-      data: {
-        internalCode: dto.internalCode,
-        clientId: dto.clientId,
-        caseNumber: dto.caseNumber,
-        channelType: dto.channelType,
-        benefitType: dto.benefitType,
-        protocolDate: toDate(dto.protocolDate),
-        derDate: toDate(dto.derDate),
-        expertExamDate: toDate(dto.expertExamDate),
-        decisionDate: toDate(dto.decisionDate),
-        mainDiseaseId: dto.mainDiseaseId,
-        mainCidId: dto.mainCidId,
-        profession: dto.profession,
-        educationLevel: dto.educationLevel,
-        ageAtFiling: dto.ageAtFiling,
-        familyIncome: dto.familyIncome,
-        familyGroupDescription: dto.familyGroupDescription,
-        expertId: dto.expertId,
-        courtAgencyName: dto.courtAgencyName,
-        courtDivision: dto.courtDivision,
-        city: dto.city,
-        state: dto.state,
-        urgentReliefRequested: dto.urgentReliefRequested ?? false,
-        currentStatus: dto.currentStatus,
-        strategySummary: dto.strategySummary,
-        createdByUserId: userId,
-        secondaryDiseases: dto.secondaryDiseaseIds?.length
-          ? {
-              createMany: {
-                data: dto.secondaryDiseaseIds.map((diseaseId) => ({ diseaseId }))
-              }
-            }
-          : undefined,
-        secondaryCids: dto.secondaryCidIds?.length
-          ? {
-              createMany: {
-                data: dto.secondaryCidIds.map((cidId) => ({ cidId }))
-              }
-            }
-          : undefined,
-        result: dto.result ? { create: dto.result } : undefined,
-        internalNotes: dto.internalNote
-          ? {
-              create: {
-                ...dto.internalNote,
-                createdByUserId: userId
-              }
-            }
-          : undefined,
-        proceduralEvents: dto.proceduralEvents?.length
-          ? {
-              create: dto.proceduralEvents.map((event) => ({
-                eventType: event.eventType as PrismaProceduralEventType,
-                eventDate: new Date(event.eventDate),
-                description: event.description,
-                relatedDocumentId: event.relatedDocumentId,
-                createdByUserId: userId
-              }))
-            }
-          : undefined
-      },
-      include: {
-        client: true,
-        mainDisease: true,
-        mainCid: true,
-        result: true,
-        expert: true
+  private async resolveExpertId(dto: Pick<CreateCaseDto, "expertId" | "expertName" | "expertRegistryNumber">) {
+    if (dto.expertId) {
+      return dto.expertId;
+    }
+
+    const expertName = dto.expertName?.trim();
+    const expertRegistryNumber = dto.expertRegistryNumber?.trim() || undefined;
+
+    if (!expertName) {
+      return undefined;
+    }
+
+    const existingExpert = await this.prisma.expert.findFirst({
+      where: {
+        fullName: {
+          equals: expertName,
+          mode: "insensitive"
+        }
       }
     });
+
+    if (existingExpert) {
+      if (expertRegistryNumber && existingExpert.registryNumber !== expertRegistryNumber) {
+        await this.prisma.expert.update({
+          where: { id: existingExpert.id },
+          data: { registryNumber: expertRegistryNumber }
+        });
+      }
+
+      return existingExpert.id;
+    }
+
+    const createdExpert = await this.prisma.expert.create({
+      data: {
+        fullName: expertName,
+        registryNumber: expertRegistryNumber
+      }
+    });
+
+    return createdExpert.id;
+  }
+
+  private rethrowKnownCreateError(error: unknown): never {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw new ConflictException("Já existe um caso com este ID interno.");
+    }
+
+    throw error;
+  }
+
+  async create(dto: CreateCaseDto, userId: string) {
+    try {
+      const expertId = await this.resolveExpertId(dto);
+
+      return await this.prisma.case.create({
+        data: {
+          internalCode: dto.internalCode,
+          clientId: dto.clientId,
+          caseNumber: dto.caseNumber,
+          channelType: dto.channelType,
+          benefitType: dto.benefitType,
+          protocolDate: toDate(dto.protocolDate),
+          derDate: toDate(dto.derDate),
+          expertExamDate: toDate(dto.expertExamDate),
+          decisionDate: toDate(dto.decisionDate),
+          mainDiseaseId: dto.mainDiseaseId,
+          mainCidId: dto.mainCidId,
+          profession: dto.profession,
+          educationLevel: dto.educationLevel,
+          ageAtFiling: dto.ageAtFiling,
+          familyIncome: dto.familyIncome,
+          familyGroupDescription: dto.familyGroupDescription,
+          expertId,
+          courtAgencyName: dto.courtAgencyName,
+          courtDivision: dto.courtDivision,
+          city: dto.city,
+          state: dto.state,
+          urgentReliefRequested: dto.urgentReliefRequested ?? false,
+          currentStatus: dto.currentStatus,
+          strategySummary: dto.strategySummary,
+          createdByUserId: userId,
+          secondaryDiseases: dto.secondaryDiseaseIds?.length
+            ? {
+                createMany: {
+                  data: dto.secondaryDiseaseIds.map((diseaseId) => ({ diseaseId }))
+                }
+              }
+            : undefined,
+          secondaryCids: dto.secondaryCidIds?.length
+            ? {
+                createMany: {
+                  data: dto.secondaryCidIds.map((cidId) => ({ cidId }))
+                }
+              }
+            : undefined,
+          result: dto.result ? { create: dto.result } : undefined,
+          internalNotes: dto.internalNote
+            ? {
+                create: {
+                  ...dto.internalNote,
+                  createdByUserId: userId
+                }
+              }
+            : undefined,
+          proceduralEvents: dto.proceduralEvents?.length
+            ? {
+                create: dto.proceduralEvents.map((event) => ({
+                  eventType: event.eventType as PrismaProceduralEventType,
+                  eventDate: new Date(event.eventDate),
+                  description: event.description,
+                  relatedDocumentId: event.relatedDocumentId,
+                  createdByUserId: userId
+                }))
+              }
+            : undefined
+        },
+        include: {
+          client: true,
+          mainDisease: true,
+          mainCid: true,
+          result: true,
+          expert: true
+        }
+      });
+    } catch (error) {
+      this.rethrowKnownCreateError(error);
+    }
   }
 
   findAll(filters: CaseFiltersDto) {
@@ -207,6 +263,15 @@ export class CasesService {
       }
     }
 
+    const expertId =
+      dto.expertId === undefined && dto.expertName === undefined && dto.expertRegistryNumber === undefined
+        ? undefined
+        : await this.resolveExpertId({
+            expertId: dto.expertId,
+            expertName: dto.expertName,
+            expertRegistryNumber: dto.expertRegistryNumber
+          });
+
     return this.prisma.case.update({
       where: { id },
       data: {
@@ -226,7 +291,7 @@ export class CasesService {
         ageAtFiling: dto.ageAtFiling,
         familyIncome: dto.familyIncome,
         familyGroupDescription: dto.familyGroupDescription,
-        expertId: dto.expertId,
+        expertId,
         courtAgencyName: dto.courtAgencyName,
         courtDivision: dto.courtDivision,
         city: dto.city,

@@ -8,6 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 function normalizeBaseCharacters(value: string) {
   return value
     .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\uFFFD/g, "")
     .replace(/[\u00A0\u202F]/g, " ")
     .replace(/[\u2010-\u2015\u2212]/g, "-")
     .replace(/[“”]/g, '"')

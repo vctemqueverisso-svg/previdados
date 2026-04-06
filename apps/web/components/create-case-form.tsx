@@ -19,7 +19,7 @@ type Props = {
   clients: Option[];
   diseases: Option[];
   cids: Option[];
-  experts: Option[];
+  experts?: Option[];
   lockedClientId?: string;
   onClientChange?: (clientId: string) => void;
   onSaved?: (savedCase: CaseItem) => void;
@@ -30,6 +30,18 @@ type ProceduralEvent = {
   eventDate: string;
   description: string;
 };
+
+type TextFieldName =
+  | "internalCode"
+  | "caseNumber"
+  | "profession"
+  | "educationLevel"
+  | "expertName"
+  | "expertRegistryNumber"
+  | "courtAgencyName"
+  | "courtDivision"
+  | "city"
+  | "state";
 
 const eventTypeOptions = [
   { value: "PROTOCOLO", label: "Protocolo" },
@@ -102,7 +114,8 @@ function Field({
   );
 }
 
-export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientId, onClientChange, onSaved }: Props) {
+export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClientChange, onSaved }: Props) {
+  const defaultDiseaseId = diseases[0]?.id ?? "";
   const [form, setForm] = useState({
     internalCode: "",
     clientId: lockedClientId || clients[0]?.id || "",
@@ -113,7 +126,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
     derDate: "",
     expertExamDate: "",
     decisionDate: "",
-    mainDiseaseId: diseases[0]?.id ?? "",
+    mainDiseaseId: defaultDiseaseId,
     mainCidId: "",
     secondaryCidIds: [] as string[],
     profession: "",
@@ -122,6 +135,8 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
     familyIncome: "",
     familyGroupDescription: "",
     expertId: "",
+    expertName: "",
+    expertRegistryNumber: "",
     courtAgencyName: "",
     courtDivision: "",
     city: "",
@@ -129,13 +144,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
     urgentReliefRequested: false,
     currentStatus: "EM_ANALISE",
     strategySummary: "",
-    proceduralEvents: [
-      {
-        eventType: "PROTOCOLO",
-        eventDate: "",
-        description: ""
-      }
-    ] as ProceduralEvent[],
+    proceduralEvents: [{ eventType: "PROTOCOLO", eventDate: "", description: "" }] as ProceduralEvent[],
     result: {
       administrativeResult: "PENDENTE",
       judicialResult: "PENDENTE",
@@ -143,11 +152,11 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
     }
   });
   const [mainCidSearch, setMainCidSearch] = useState("");
-  const [mainDiseaseSearch, setMainDiseaseSearch] = useState("");
+  const [mainDiseaseSearch, setMainDiseaseSearch] = useState(resolveOptionLabel(diseases, defaultDiseaseId));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  function updateTextField(field: "internalCode" | "caseNumber" | "profession" | "educationLevel" | "courtAgencyName" | "courtDivision" | "city" | "state", value: string) {
+  function updateTextField(field: TextFieldName, value: string) {
     setForm((current) => ({
       ...current,
       [field]: normalizeSingleLineText(value)
@@ -166,6 +175,8 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
       mainCidId: form.mainCidId || undefined,
       profession: normalizeSingleLineText(form.profession),
       educationLevel: normalizeSingleLineText(form.educationLevel),
+      expertName: normalizeSingleLineText(form.expertName),
+      expertRegistryNumber: normalizeSingleLineText(form.expertRegistryNumber),
       ageAtFiling: form.ageAtFiling === "" ? undefined : Number(form.ageAtFiling),
       familyIncome: form.familyIncome === "" ? undefined : Number(form.familyIncome),
       familyGroupDescription: normalizeMultilineText(form.familyGroupDescription),
@@ -176,7 +187,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
       strategySummary: normalizeMultilineText(form.strategySummary),
       proceduralEvents: form.proceduralEvents
         .filter((item) => item.eventDate)
-        .map((item) => ({ ...item, description: normalizeSingleLineText(item.description) }))
+        .map((item) => ({ ...item, description: normalizeMultilineText(item.description) }))
     };
 
     const response = await fetch(`${getClientApiBaseUrl()}/api/cases`, {
@@ -191,7 +202,9 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
     setSaving(false);
 
     if (!response.ok) {
-      setError("Não foi possível cadastrar o caso.");
+      const responseBody = await response.json().catch(() => null);
+      const apiMessage = Array.isArray(responseBody?.message) ? responseBody.message.join(" ") : responseBody?.message;
+      setError(apiMessage || "Não foi possível cadastrar o caso.");
       return;
     }
 
@@ -211,6 +224,8 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
       familyIncome: "",
       familyGroupDescription: "",
       expertId: "",
+      expertName: "",
+      expertRegistryNumber: "",
       courtAgencyName: "",
       courtDivision: "",
       city: "",
@@ -224,7 +239,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
       }
     }));
     setMainCidSearch("");
-    setMainDiseaseSearch("");
+    setMainDiseaseSearch(resolveOptionLabel(diseases, form.mainDiseaseId));
     onClientChange?.(savedCase.client.id);
     onSaved?.(savedCase);
   }
@@ -297,7 +312,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
         </div>
       </Section>
 
-      <Section title="Quadro clínico" description="Selecione a doença principal, o CID principal e o perito, quando houver.">
+      <Section title="Quadro clínico" description="Selecione a doença principal, o CID principal e informe o perito manualmente, quando houver.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <Field label="Doença principal">
             <div className="space-y-2">
@@ -305,6 +320,8 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
                 className="w-full"
                 list="case-disease-options"
                 placeholder="Digite a doença principal"
+                autoComplete="off"
+                spellCheck={false}
                 value={mainDiseaseSearch}
                 onChange={(e) => {
                   const nextValue = normalizeSingleLineText(e.target.value);
@@ -324,6 +341,8 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
                 className="w-full"
                 list="case-cid-options"
                 placeholder="Digite o CID principal"
+                autoComplete="off"
+                spellCheck={false}
                 value={mainCidSearch}
                 onChange={(e) => {
                   const nextValue = normalizeSingleLineText(e.target.value);
@@ -338,14 +357,20 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
           </Field>
 
           <Field label="Perito">
-            <select className="w-full" value={form.expertId} onChange={(e) => setForm({ ...form, expertId: e.target.value })}>
-              <option value="">Sem perito</option>
-              {experts.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
+            <div className="grid gap-3 md:grid-cols-2">
+              <input
+                className="w-full"
+                placeholder="Nome do perito"
+                value={form.expertName}
+                onChange={(e) => updateTextField("expertName", e.target.value)}
+              />
+              <input
+                className="w-full"
+                placeholder="CRM ou registro"
+                value={form.expertRegistryNumber}
+                onChange={(e) => updateTextField("expertRegistryNumber", e.target.value)}
+              />
+            </div>
           </Field>
         </div>
 
@@ -461,14 +486,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
               onClick={() =>
                 setForm({
                   ...form,
-                  proceduralEvents: [
-                    ...form.proceduralEvents,
-                    {
-                      eventType: "OUTRO",
-                      eventDate: "",
-                      description: ""
-                    }
-                  ]
+                  proceduralEvents: [...form.proceduralEvents, { eventType: "OUTRO", eventDate: "", description: "" }]
                 })
               }
             >
@@ -515,15 +533,15 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
                   }
                 />
 
-                <input
-                  className="w-full"
+                <textarea
+                  className="min-h-[54px] w-full resize-y"
                   placeholder="Descrição do evento"
                   value={event.description}
                   onChange={(e) =>
                     setForm({
                       ...form,
                       proceduralEvents: form.proceduralEvents.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, description: normalizeSingleLineText(e.target.value) } : item
+                        itemIndex === index ? { ...item, description: normalizeMultilineText(e.target.value) } : item
                       )
                     })
                   }
