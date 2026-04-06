@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { getClientApiBaseUrl } from "../lib/client-api";
 import { CaseItem } from "../lib/types";
 import { normalizeMultilineText, normalizeSingleLineText } from "./utils";
@@ -14,16 +14,6 @@ function getTokenFromCookie() {
 }
 
 type Option = { id: string; label: string };
-
-type Props = {
-  clients: Option[];
-  diseases: Option[];
-  cids: Option[];
-  experts?: Option[];
-  lockedClientId?: string;
-  onClientChange?: (clientId: string) => void;
-  onSaved?: (savedCase: CaseItem) => void;
-};
 
 type ProceduralEvent = {
   eventType: string;
@@ -43,20 +33,36 @@ type TextFieldName =
   | "city"
   | "state";
 
+type Props = {
+  clients: Option[];
+  diseases: Option[];
+  cids: Option[];
+  experts?: Option[];
+  lockedClientId?: string;
+  mode?: "create" | "edit";
+  caseId?: string;
+  initialValues?: Partial<CaseItem>;
+  onClientChange?: (clientId: string) => void;
+  onSaved?: (savedCase: CaseItem) => void;
+  onCancel?: () => void;
+};
+
 const eventTypeOptions = [
   { value: "PROTOCOLO", label: "Protocolo" },
-  { value: "PERICIA_MEDICA_ADMINISTRATIVA", label: "Perícia médica administrativa" },
-  { value: "PERICIA_SOCIAL_ADMINISTRATIVA", label: "Perícia social administrativa" },
-  { value: "DECISAO_ADMINISTRATIVA", label: "Decisão administrativa" },
+  { value: "PERICIA_MEDICA_ADMINISTRATIVA", label: "Pericia medica administrativa" },
+  { value: "PERICIA_SOCIAL_ADMINISTRATIVA", label: "Pericia social administrativa" },
+  { value: "DECISAO_ADMINISTRATIVA", label: "Decisao administrativa" },
   { value: "AJUIZAMENTO", label: "Ajuizamento" },
-  { value: "PERICIA_MEDICA_JUDICIAL", label: "Perícia médica judicial" },
-  { value: "PERICIA_SOCIAL_JUDICIAL", label: "Perícia social judicial" },
-  { value: "SENTENCA", label: "Sentença" },
+  { value: "PERICIA_MEDICA_JUDICIAL", label: "Pericia medica judicial" },
+  { value: "PERICIA_SOCIAL_JUDICIAL", label: "Pericia social judicial" },
+  { value: "SENTENCA", label: "Sentenca" },
   { value: "RECURSO", label: "Recurso" },
-  { value: "ACORDAO", label: "Acórdão" },
+  { value: "ACORDAO", label: "Acordao" },
   { value: "CUMPRIMENTO", label: "Cumprimento" },
   { value: "OUTRO", label: "Outro" }
 ] as const;
+
+const defaultEvent = { eventType: "PROTOCOLO", eventDate: "", description: "" };
 
 function resolveOptionId(options: Option[], query: string) {
   const normalizedQuery = query.trim().toLowerCase();
@@ -75,6 +81,63 @@ function resolveOptionId(options: Option[], query: string) {
 
 function resolveOptionLabel(options: Option[], id: string) {
   return options.find((item) => item.id === id)?.label ?? "";
+}
+
+function toDateInput(value?: string) {
+  return value ? String(value).slice(0, 10) : "";
+}
+
+function buildInitialState(initialValues: Partial<CaseItem> | undefined, options: { clients: Option[]; diseases: Option[]; cids: Option[]; lockedClientId?: string }) {
+  const resolvedDiseaseId = resolveOptionId(options.diseases, initialValues?.mainDisease?.name ?? "");
+  const defaultDiseaseId = initialValues?.mainDisease?.id ?? resolvedDiseaseId ?? options.diseases[0]?.id ?? "";
+  const defaultCidLabel = initialValues?.mainCid
+    ? `${initialValues.mainCid.code}${initialValues.mainCid.description ? ` - ${initialValues.mainCid.description}` : ""}`
+    : "";
+  const defaultCidId = initialValues?.mainCid?.id ?? resolveOptionId(options.cids, defaultCidLabel);
+
+  return {
+    internalCode: initialValues?.internalCode ?? "",
+    clientId: options.lockedClientId || initialValues?.client?.id || options.clients[0]?.id || "",
+    caseNumber: initialValues?.caseNumber ?? "",
+    channelType: initialValues?.channelType ?? "JUDICIAL",
+    benefitType: initialValues?.benefitType ?? "AUXILIO_DOENCA",
+    protocolDate: toDateInput(initialValues?.protocolDate),
+    derDate: toDateInput(initialValues?.derDate),
+    expertExamDate: toDateInput(initialValues?.expertExamDate),
+    decisionDate: toDateInput(initialValues?.decisionDate),
+    mainDiseaseId: defaultDiseaseId,
+    mainCidId: defaultCidId,
+    secondaryCidIds: [] as string[],
+    profession: initialValues?.profession ?? "",
+    educationLevel: initialValues?.educationLevel ?? "",
+    ageAtFiling: initialValues?.ageAtFiling !== undefined && initialValues?.ageAtFiling !== null ? String(initialValues.ageAtFiling) : "",
+    familyIncome:
+      initialValues?.familyIncome !== undefined && initialValues?.familyIncome !== null ? String(initialValues.familyIncome) : "",
+    familyGroupDescription: initialValues?.familyGroupDescription ?? "",
+    expertId: initialValues?.expert?.id ?? "",
+    expertName: initialValues?.expert?.fullName ?? "",
+    expertRegistryNumber: initialValues?.expert?.registryNumber ?? "",
+    courtAgencyName: initialValues?.courtAgencyName ?? "",
+    courtDivision: initialValues?.courtDivision ?? "",
+    city: initialValues?.city ?? "",
+    state: initialValues?.state ?? "",
+    urgentReliefRequested: initialValues?.urgentReliefRequested ?? false,
+    currentStatus: initialValues?.currentStatus ?? "EM_ANALISE",
+    strategySummary: initialValues?.strategySummary ?? "",
+    proceduralEvents:
+      initialValues?.proceduralEvents?.length
+        ? initialValues.proceduralEvents.map((item) => ({
+            eventType: item.eventType,
+            eventDate: toDateInput(item.eventDate),
+            description: item.description ?? ""
+          }))
+        : [{ ...defaultEvent }],
+    result: {
+      administrativeResult: initialValues?.result?.administrativeResult ?? "PENDENTE",
+      judicialResult: initialValues?.result?.judicialResult ?? "PENDENTE",
+      finalOutcome: initialValues?.result?.finalOutcome ?? "PENDENTE"
+    }
+  };
 }
 
 function Section({
@@ -114,45 +177,30 @@ function Field({
   );
 }
 
-export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClientChange, onSaved }: Props) {
-  const defaultDiseaseId = diseases[0]?.id ?? "";
-  const [form, setForm] = useState({
-    internalCode: "",
-    clientId: lockedClientId || clients[0]?.id || "",
-    caseNumber: "",
-    channelType: "JUDICIAL",
-    benefitType: "AUXILIO_DOENCA",
-    protocolDate: "",
-    derDate: "",
-    expertExamDate: "",
-    decisionDate: "",
-    mainDiseaseId: defaultDiseaseId,
-    mainCidId: "",
-    secondaryCidIds: [] as string[],
-    profession: "",
-    educationLevel: "",
-    ageAtFiling: "",
-    familyIncome: "",
-    familyGroupDescription: "",
-    expertId: "",
-    expertName: "",
-    expertRegistryNumber: "",
-    courtAgencyName: "",
-    courtDivision: "",
-    city: "",
-    state: "",
-    urgentReliefRequested: false,
-    currentStatus: "EM_ANALISE",
-    strategySummary: "",
-    proceduralEvents: [{ eventType: "PROTOCOLO", eventDate: "", description: "" }] as ProceduralEvent[],
-    result: {
-      administrativeResult: "PENDENTE",
-      judicialResult: "PENDENTE",
-      finalOutcome: "PENDENTE"
-    }
-  });
-  const [mainCidSearch, setMainCidSearch] = useState("");
-  const [mainDiseaseSearch, setMainDiseaseSearch] = useState(resolveOptionLabel(diseases, defaultDiseaseId));
+export function CreateCaseForm({
+  clients,
+  diseases,
+  cids,
+  lockedClientId,
+  mode = "create",
+  caseId,
+  initialValues,
+  onClientChange,
+  onSaved,
+  onCancel
+}: Props) {
+  const initialState = useMemo(
+    () => buildInitialState(initialValues, { clients, diseases, cids, lockedClientId }),
+    [initialValues, clients, diseases, cids, lockedClientId]
+  );
+
+  const [form, setForm] = useState(initialState);
+  const [mainCidSearch, setMainCidSearch] = useState(
+    initialValues?.mainCid ? `${initialValues.mainCid.code}${initialValues.mainCid.description ? ` - ${initialValues.mainCid.description}` : ""}` : ""
+  );
+  const [mainDiseaseSearch, setMainDiseaseSearch] = useState(
+    initialValues?.mainDisease?.name || resolveOptionLabel(diseases, initialState.mainDiseaseId)
+  );
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -191,11 +239,14 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
       strategySummary: normalizeMultilineText(form.strategySummary),
       proceduralEvents: form.proceduralEvents
         .filter((item) => item.eventDate)
-        .map((item) => ({ ...item, description: normalizeMultilineText(item.description) }))
+        .map((item) => ({
+          ...item,
+          description: normalizeMultilineText(item.description)
+        }))
     };
 
-    const response = await fetch(`${getClientApiBaseUrl()}/api/cases`, {
-      method: "POST",
+    const response = await fetch(`${getClientApiBaseUrl()}/api/cases${mode === "edit" && caseId ? `/${caseId}` : ""}`, {
+      method: mode === "edit" ? "PATCH" : "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${getTokenFromCookie()}`
@@ -208,49 +259,26 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
     if (!response.ok) {
       const responseBody = await response.json().catch(() => null);
       const apiMessage = Array.isArray(responseBody?.message) ? responseBody.message.join(" ") : responseBody?.message;
-      setError(apiMessage || "Não foi possível cadastrar o caso.");
+      setError(apiMessage || (mode === "edit" ? "Nao foi possivel atualizar o caso." : "Nao foi possivel cadastrar o caso."));
       return;
     }
 
-    const savedCase = await response.json();
+    const savedCase = (await response.json()) as CaseItem;
 
-    setForm((current) => ({
-      ...current,
-      internalCode: "",
-      caseNumber: "",
-      protocolDate: "",
-      derDate: "",
-      expertExamDate: "",
-      decisionDate: "",
-      profession: "",
-      educationLevel: "",
-      ageAtFiling: "",
-      familyIncome: "",
-      familyGroupDescription: "",
-      expertId: "",
-      expertName: "",
-      expertRegistryNumber: "",
-      courtAgencyName: "",
-      courtDivision: "",
-      city: "",
-      state: "",
-      strategySummary: "",
-      proceduralEvents: [{ eventType: "PROTOCOLO", eventDate: "", description: "" }],
-      result: {
-        administrativeResult: "PENDENTE",
-        judicialResult: "PENDENTE",
-        finalOutcome: "PENDENTE"
-      }
-    }));
-    setMainCidSearch("");
-    setMainDiseaseSearch(resolveOptionLabel(diseases, form.mainDiseaseId));
-    onClientChange?.(savedCase.client.id);
+    if (mode === "create") {
+      const resetState = buildInitialState(undefined, { clients, diseases, cids, lockedClientId });
+      setForm(resetState);
+      setMainCidSearch("");
+      setMainDiseaseSearch(resolveOptionLabel(diseases, resetState.mainDiseaseId));
+      onClientChange?.(savedCase.client.id);
+    }
+
     onSaved?.(savedCase);
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <Section title="Identificação do caso" description="Preencha apenas o essencial para abrir o acompanhamento do cliente.">
+      <Section title="Identificacao do caso" description="Preencha apenas o essencial para abrir o acompanhamento do cliente.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <Field label="Cliente" className="xl:col-span-2">
             <select
@@ -259,7 +287,7 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
               disabled={Boolean(lockedClientId)}
               onChange={(e) => {
                 const nextClientId = e.target.value;
-                setForm({ ...form, clientId: nextClientId });
+                setForm((current) => ({ ...current, clientId: nextClientId }));
                 onClientChange?.(nextClientId);
               }}
             >
@@ -272,33 +300,33 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
           </Field>
 
           <Field label="Via" className="xl:col-span-2">
-            <select className="w-full" value={form.channelType} onChange={(e) => setForm({ ...form, channelType: e.target.value })}>
+            <select className="w-full" value={form.channelType} onChange={(e) => setForm((current) => ({ ...current, channelType: e.target.value }))}>
               <option value="ADMINISTRATIVO">Administrativo</option>
               <option value="JUDICIAL">Judicial</option>
             </select>
           </Field>
 
           <Field label="Fase" className="xl:col-span-2">
-            <select className="w-full" value={form.currentStatus} onChange={(e) => setForm({ ...form, currentStatus: e.target.value })}>
-              <option value="EM_ANALISE">Em análise</option>
-              <option value="AGUARDANDO_DOCUMENTOS">Exigência</option>
-              <option value="CONCLUIDO">Concluído</option>
+            <select className="w-full" value={form.currentStatus} onChange={(e) => setForm((current) => ({ ...current, currentStatus: e.target.value }))}>
+              <option value="EM_ANALISE">Em analise</option>
+              <option value="AGUARDANDO_DOCUMENTOS">Exigencia</option>
+              <option value="CONCLUIDO">Concluido</option>
             </select>
           </Field>
 
-          <Field label="Benefício" className="xl:col-span-2">
-            <select className="w-full" value={form.benefitType} onChange={(e) => setForm({ ...form, benefitType: e.target.value })}>
-              <option value="AUXILIO_DOENCA">Auxílio-doença</option>
+          <Field label="Beneficio" className="xl:col-span-2">
+            <select className="w-full" value={form.benefitType} onChange={(e) => setForm((current) => ({ ...current, benefitType: e.target.value }))}>
+              <option value="AUXILIO_DOENCA">Auxilio-doenca</option>
               <option value="APOSENTADORIA_INCAPACIDADE">Aposentadoria por incapacidade</option>
               <option value="BPC_LOAS">BPC/LOAS</option>
               <option value="OUTRO">Outro</option>
             </select>
           </Field>
 
-          <Field label="Número do processo ou NB" className="xl:col-span-3">
+          <Field label="Numero do processo ou NB" className="xl:col-span-3">
             <input
               className="w-full"
-              placeholder="Número do processo ou NB"
+              placeholder="Numero do processo ou NB"
               value={form.caseNumber}
               onChange={(e) => updateTextField("caseNumber", e.target.value)}
             />
@@ -316,25 +344,25 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
         </div>
       </Section>
 
-      <Section title="Quadro clínico" description="Selecione a doença principal, o CID principal e informe o perito manualmente, quando houver.">
+      <Section title="Quadro clinico" description="Selecione a doenca principal, o CID principal e informe o perito manualmente, quando houver.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <Field label="Doença principal">
+          <Field label="Doenca principal">
             <div className="space-y-2">
               <input
                 className="w-full"
                 list="case-disease-options"
-                placeholder="Digite a doença principal"
+                placeholder="Digite a doenca principal"
                 autoComplete="off"
                 spellCheck={false}
                 value={mainDiseaseSearch}
                 onChange={(e) => {
                   const nextValue = normalizeSingleLineText(e.target.value);
                   setMainDiseaseSearch(nextValue);
-                  setForm({ ...form, mainDiseaseId: resolveOptionId(diseases, nextValue) });
+                  setForm((current) => ({ ...current, mainDiseaseId: resolveOptionId(diseases, nextValue) }));
                 }}
               />
               <p className="text-xs text-[color:var(--text-soft)]">
-                {form.mainDiseaseId ? `Selecionada: ${resolveOptionLabel(diseases, form.mainDiseaseId)}` : "Nenhuma doença principal selecionada."}
+                {form.mainDiseaseId ? `Selecionada: ${resolveOptionLabel(diseases, form.mainDiseaseId)}` : "Nenhuma doenca principal selecionada."}
               </p>
             </div>
           </Field>
@@ -351,7 +379,7 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
                 onChange={(e) => {
                   const nextValue = normalizeSingleLineText(e.target.value);
                   setMainCidSearch(nextValue);
-                  setForm({ ...form, mainCidId: resolveOptionId(cids, nextValue) });
+                  setForm((current) => ({ ...current, mainCidId: resolveOptionId(cids, nextValue) }));
                 }}
               />
               <p className="text-xs text-[color:var(--text-soft)]">
@@ -391,20 +419,17 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
         </datalist>
       </Section>
 
-      <Section title="Resultado do caso" description="Esses dados alimentam os indicadores e relatórios da tela inicial.">
+      <Section title="Resultado do caso" description="Esses dados alimentam os indicadores e relatorios da tela inicial.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <Field label="Resultado administrativo">
             <select
               className="w-full"
-              value={form.result.administrativeResult ?? "PENDENTE"}
+              value={form.result.administrativeResult}
               onChange={(e) =>
-                setForm({
-                  ...form,
-                  result: {
-                    ...form.result,
-                    administrativeResult: e.target.value
-                  }
-                })
+                setForm((current) => ({
+                  ...current,
+                  result: { ...current.result, administrativeResult: e.target.value }
+                }))
               }
             >
               <option value="PENDENTE">Pendente</option>
@@ -416,15 +441,12 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
           <Field label="Resultado judicial">
             <select
               className="w-full"
-              value={form.result.judicialResult ?? "PENDENTE"}
+              value={form.result.judicialResult}
               onChange={(e) =>
-                setForm({
-                  ...form,
-                  result: {
-                    ...form.result,
-                    judicialResult: e.target.value
-                  }
-                })
+                setForm((current) => ({
+                  ...current,
+                  result: { ...current.result, judicialResult: e.target.value }
+                }))
               }
             >
               <option value="PENDENTE">Pendente</option>
@@ -438,15 +460,12 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
           <Field label="Desfecho final">
             <select
               className="w-full"
-              value={form.result.finalOutcome ?? "PENDENTE"}
+              value={form.result.finalOutcome}
               onChange={(e) =>
-                setForm({
-                  ...form,
-                  result: {
-                    ...form.result,
-                    finalOutcome: e.target.value
-                  }
-                })
+                setForm((current) => ({
+                  ...current,
+                  result: { ...current.result, finalOutcome: e.target.value }
+                }))
               }
             >
               <option value="PENDENTE">Pendente</option>
@@ -466,9 +485,7 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-base font-semibold text-ink">Linha do tempo processual</p>
-              <p className="mt-1 text-sm text-[color:var(--text-soft)]">
-                Abra este bloco apenas quando quiser lançar marcos relevantes do andamento.
-              </p>
+              <p className="mt-1 text-sm text-[color:var(--text-soft)]">Abra este bloco apenas quando quiser lancar marcos relevantes do andamento.</p>
             </div>
             <span className="rounded-full border border-[rgba(24,38,63,0.1)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--text-soft)]">
               Oculta
@@ -481,17 +498,17 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
             <div>
               <p className="text-sm font-semibold text-ink">Eventos do andamento</p>
               <p className="mt-1 text-sm text-[color:var(--text-soft)]">
-                Adicione só os marcos realmente relevantes da tramitação administrativa ou judicial.
+                Adicione so os marcos realmente relevantes da tramitacao administrativa ou judicial.
               </p>
             </div>
             <button
               type="button"
               className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-3 text-sm font-medium text-ink hover:bg-slate-50"
               onClick={() =>
-                setForm({
-                  ...form,
-                  proceduralEvents: [...form.proceduralEvents, { eventType: "OUTRO", eventDate: "", description: "" }]
-                })
+                setForm((current) => ({
+                  ...current,
+                  proceduralEvents: [...current.proceduralEvents, { ...defaultEvent, eventType: "OUTRO" }]
+                }))
               }
             >
               Adicionar evento
@@ -499,21 +516,21 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
           </div>
 
           <div className="space-y-3">
-            {form.proceduralEvents.map((event, index) => (
+            {form.proceduralEvents.map((item, index) => (
               <div
-                key={`${event.eventType}-${index}`}
+                key={`${item.eventType}-${index}-${item.eventDate}`}
                 className="grid gap-3 rounded-2xl border border-[rgba(24,38,63,0.08)] bg-white p-4 md:grid-cols-[minmax(180px,220px)_180px_minmax(220px,1fr)_auto]"
               >
                 <select
                   className="w-full"
-                  value={event.eventType}
+                  value={item.eventType}
                   onChange={(e) =>
-                    setForm({
-                      ...form,
-                      proceduralEvents: form.proceduralEvents.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, eventType: e.target.value } : item
+                    setForm((current) => ({
+                      ...current,
+                      proceduralEvents: current.proceduralEvents.map((currentEvent, currentIndex) =>
+                        currentIndex === index ? { ...currentEvent, eventType: e.target.value } : currentEvent
                       )
-                    })
+                    }))
                   }
                 >
                   {eventTypeOptions.map((option) => (
@@ -526,42 +543,44 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
                 <input
                   className="w-full"
                   type="date"
-                  value={event.eventDate}
+                  value={item.eventDate}
                   onChange={(e) =>
-                    setForm({
-                      ...form,
-                      proceduralEvents: form.proceduralEvents.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, eventDate: e.target.value } : item
+                    setForm((current) => ({
+                      ...current,
+                      proceduralEvents: current.proceduralEvents.map((currentEvent, currentIndex) =>
+                        currentIndex === index ? { ...currentEvent, eventDate: e.target.value } : currentEvent
                       )
-                    })
+                    }))
                   }
                 />
 
                 <textarea
                   className="min-h-[54px] w-full resize-y"
-                  placeholder="Descrição do evento"
-                  value={event.description}
+                  placeholder="Descricao do evento"
+                  value={item.description}
                   onChange={(e) =>
-                    setForm({
-                      ...form,
-                      proceduralEvents: form.proceduralEvents.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, description: normalizeMultilineText(e.target.value) } : item
+                    setForm((current) => ({
+                      ...current,
+                      proceduralEvents: current.proceduralEvents.map((currentEvent, currentIndex) =>
+                        currentIndex === index
+                          ? { ...currentEvent, description: normalizeMultilineText(e.target.value) }
+                          : currentEvent
                       )
-                    })
+                    }))
                   }
                 />
 
                 <button
                   type="button"
-                  className="rounded-xl border border-[rgba(140,45,45,0.14)] bg-[rgba(255,242,242,0.95)] px-3 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[color:#8b3a3a] hover:bg-[rgba(255,235,235,1)]"
+                  className="rounded-xl border border-[rgba(140,45,45,0.14)] bg-[rgba(255,242,242,0.95)] px-3 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a3a] hover:bg-[rgba(255,235,235,1)]"
                   onClick={() =>
-                    setForm({
-                      ...form,
+                    setForm((current) => ({
+                      ...current,
                       proceduralEvents:
-                        form.proceduralEvents.length === 1
-                          ? [{ eventType: "PROTOCOLO", eventDate: "", description: "" }]
-                          : form.proceduralEvents.filter((_, itemIndex) => itemIndex !== index)
-                    })
+                        current.proceduralEvents.length === 1
+                          ? [{ ...defaultEvent }]
+                          : current.proceduralEvents.filter((_, currentIndex) => currentIndex !== index)
+                    }))
                   }
                 >
                   Remover
@@ -572,16 +591,22 @@ export function CreateCaseForm({ clients, diseases, cids, lockedClientId, onClie
         </div>
       </details>
 
-      <div className="flex justify-end">
-        <button
-          disabled={saving}
-          className="rounded-xl bg-ink px-6 py-3 text-sm font-medium text-white hover:bg-ink/90 disabled:opacity-70"
-        >
-          {saving ? "Salvando..." : "Cadastrar caso"}
+      {error ? <p className="text-sm text-[#8b3a3a]">{error}</p> : null}
+
+      <div className="flex flex-wrap justify-end gap-3">
+        {mode === "edit" && onCancel ? (
+          <button
+            type="button"
+            className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-6 py-3 text-sm font-medium text-ink hover:bg-slate-50"
+            onClick={onCancel}
+          >
+            Cancelar
+          </button>
+        ) : null}
+        <button disabled={saving} className="rounded-xl bg-ink px-6 py-3 text-sm font-medium text-white hover:bg-ink/90 disabled:opacity-70">
+          {saving ? "Salvando..." : mode === "edit" ? "Salvar alteracoes" : "Cadastrar caso"}
         </button>
       </div>
-
-      {error ? <p className="text-sm text-[#8b3a3a]">{error}</p> : null}
     </form>
   );
 }

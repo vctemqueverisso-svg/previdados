@@ -17,6 +17,10 @@ type Props = {
   lockedClientId?: string;
 };
 
+type CaseDetail = CaseItem & {
+  proceduralEvents?: { id?: string; eventType: string; eventDate: string; description?: string }[];
+};
+
 function formatOutcome(item: CaseItem) {
   return item.result?.finalOutcome || item.currentStatus;
 }
@@ -30,9 +34,21 @@ function getTokenFromCookie() {
   );
 }
 
+function normalizeCase(savedCase: CaseItem) {
+  return {
+    ...savedCase,
+    mainDisease: savedCase.mainDisease ?? undefined,
+    mainCid: savedCase.mainCid ?? undefined,
+    expert: savedCase.expert ?? undefined,
+    result: savedCase.result ?? undefined
+  };
+}
+
 export function CaseRegistry({ initialCases, clients, diseases, cids, experts, lockedClientId }: Props) {
   const [cases, setCases] = useState(initialCases);
   const [selectedClientId, setSelectedClientId] = useState(lockedClientId ?? "");
+  const [editingCase, setEditingCase] = useState<CaseDetail | null>(null);
+  const [loadingCaseId, setLoadingCaseId] = useState("");
 
   const visibleCases = useMemo(() => {
     if (!selectedClientId) {
@@ -41,6 +57,27 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
 
     return cases.filter((item) => item.client.id === selectedClientId);
   }, [cases, selectedClientId]);
+
+  async function startEditing(id: string) {
+    setLoadingCaseId(id);
+
+    const response = await fetch(`${getClientApiBaseUrl()}/api/cases/${id}`, {
+      headers: {
+        Authorization: `Bearer ${getTokenFromCookie()}`
+      }
+    });
+
+    setLoadingCaseId("");
+
+    if (!response.ok) {
+      window.alert("Nao foi possivel carregar o caso para edicao.");
+      return;
+    }
+
+    const detailedCase = (await response.json()) as CaseDetail;
+    setEditingCase(detailedCase);
+    setSelectedClientId(detailedCase.client.id);
+  }
 
   async function removeCase(id: string) {
     const confirmed = window.confirm("Deseja mesmo excluir este caso?");
@@ -56,34 +93,45 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
     });
 
     if (!response.ok) {
-      window.alert("Não foi possível excluir o caso.");
+      window.alert("Nao foi possivel excluir o caso.");
       return;
     }
 
     setCases((current) => current.filter((item) => item.id !== id));
+    if (editingCase?.id === id) {
+      setEditingCase(null);
+    }
   }
 
   return (
     <div className="space-y-6">
       <CreateCaseForm
+        key={editingCase ? `edit-${editingCase.id}` : `create-${lockedClientId ?? "default"}`}
         clients={clients}
         diseases={diseases}
         cids={cids}
         experts={experts}
         lockedClientId={lockedClientId}
+        mode={editingCase ? "edit" : "create"}
+        caseId={editingCase?.id}
+        initialValues={editingCase ?? undefined}
         onClientChange={setSelectedClientId}
         onSaved={(savedCase) => {
-          const normalizedCase: CaseItem = {
-            ...savedCase,
-            mainDisease: savedCase.mainDisease ?? undefined,
-            mainCid: savedCase.mainCid ?? undefined,
-            expert: savedCase.expert ?? undefined,
-            result: savedCase.result ?? undefined
-          };
+          const normalizedCase = normalizeCase(savedCase);
 
-          setCases((current) => [normalizedCase, ...current]);
+          setCases((current) => {
+            const existing = current.some((item) => item.id === normalizedCase.id);
+            if (!existing) {
+              return [normalizedCase, ...current];
+            }
+
+            return current.map((item) => (item.id === normalizedCase.id ? normalizedCase : item));
+          });
+
           setSelectedClientId(savedCase.client.id);
+          setEditingCase(null);
         }}
+        onCancel={() => setEditingCase(null)}
       />
 
       {selectedClientId ? (
@@ -94,11 +142,11 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
                 <th>Caso</th>
                 <th>Cliente</th>
                 <th>Via</th>
-                <th>Benefício</th>
-                <th>Doença/CID</th>
+                <th>Beneficio</th>
+                <th>Doenca/CID</th>
                 <th>Perito</th>
                 <th>Resultado</th>
-                <th>Ações</th>
+                <th>Acoes</th>
               </tr>
             </thead>
             <tbody>
@@ -118,6 +166,14 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
                   <td>{formatOutcome(item)}</td>
                   <td>
                     <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-3 py-2 text-xs font-medium text-ink hover:bg-slate-50"
+                        onClick={() => startEditing(item.id)}
+                        disabled={loadingCaseId === item.id}
+                      >
+                        {loadingCaseId === item.id ? "Abrindo..." : "Editar"}
+                      </button>
                       <Link
                         href={`/casos/${item.id}`}
                         className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-3 py-2 text-xs font-medium text-ink hover:bg-slate-50"
@@ -140,10 +196,10 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
         </div>
       ) : (
         <div className="card p-5">
-          <p className="eyebrow">Histórico</p>
+          <p className="eyebrow">Historico</p>
           <h3 className="mt-2 text-xl font-semibold text-ink">Selecione um cliente para visualizar os casos</h3>
           <p className="mt-2 text-sm text-[color:var(--text-soft)]">
-            Os processos já cadastrados aparecem somente quando o caso estiver sendo aberto para um cliente específico.
+            Os processos ja cadastrados aparecem somente quando o caso estiver sendo aberto para um cliente especifico.
           </p>
         </div>
       )}

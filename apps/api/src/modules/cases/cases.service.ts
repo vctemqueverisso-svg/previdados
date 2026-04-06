@@ -245,85 +245,108 @@ export class CasesService {
   }
 
   async update(id: string, dto: UpdateCaseDto, userId: string) {
-    if (dto.secondaryDiseaseIds) {
-      await this.prisma.caseSecondaryDisease.deleteMany({ where: { caseId: id } });
-      if (dto.secondaryDiseaseIds.length) {
-        await this.prisma.caseSecondaryDisease.createMany({
-          data: dto.secondaryDiseaseIds.map((diseaseId) => ({ caseId: id, diseaseId }))
-        });
+    try {
+      if (dto.secondaryDiseaseIds) {
+        await this.prisma.caseSecondaryDisease.deleteMany({ where: { caseId: id } });
+        if (dto.secondaryDiseaseIds.length) {
+          await this.prisma.caseSecondaryDisease.createMany({
+            data: dto.secondaryDiseaseIds.map((diseaseId) => ({ caseId: id, diseaseId }))
+          });
+        }
       }
-    }
 
-    if (dto.secondaryCidIds) {
-      await this.prisma.caseSecondaryCid.deleteMany({ where: { caseId: id } });
-      if (dto.secondaryCidIds.length) {
-        await this.prisma.caseSecondaryCid.createMany({
-          data: dto.secondaryCidIds.map((cidId) => ({ caseId: id, cidId }))
-        });
+      if (dto.secondaryCidIds) {
+        await this.prisma.caseSecondaryCid.deleteMany({ where: { caseId: id } });
+        if (dto.secondaryCidIds.length) {
+          await this.prisma.caseSecondaryCid.createMany({
+            data: dto.secondaryCidIds.map((cidId) => ({ caseId: id, cidId }))
+          });
+        }
       }
-    }
 
-    const expertId =
-      dto.expertId === undefined && dto.expertName === undefined && dto.expertRegistryNumber === undefined
-        ? undefined
-        : await this.resolveExpertId({
+      if (dto.proceduralEvents) {
+        await this.prisma.proceduralEvent.deleteMany({ where: { caseId: id } });
+        if (dto.proceduralEvents.length) {
+          await this.prisma.proceduralEvent.createMany({
+            data: dto.proceduralEvents.map((event) => ({
+              caseId: id,
+              eventType: event.eventType as PrismaProceduralEventType,
+              eventDate: new Date(event.eventDate),
+              description: event.description,
+              relatedDocumentId: event.relatedDocumentId,
+              createdByUserId: userId
+            }))
+          });
+        }
+      }
+
+      const shouldUpdateExpert =
+        dto.expertId !== undefined || dto.expertName !== undefined || dto.expertRegistryNumber !== undefined;
+
+      const expertId = shouldUpdateExpert
+        ? await this.resolveExpertId({
             expertId: dto.expertId,
             expertName: dto.expertName,
             expertRegistryNumber: dto.expertRegistryNumber
-          });
+          })
+        : undefined;
 
-    return this.prisma.case.update({
-      where: { id },
-      data: {
-        internalCode: dto.internalCode,
-        clientId: dto.clientId,
-        caseNumber: dto.caseNumber,
-        channelType: dto.channelType,
-        benefitType: dto.benefitType,
-        protocolDate: toDate(dto.protocolDate),
-        derDate: toDate(dto.derDate),
-        expertExamDate: toDate(dto.expertExamDate),
-        decisionDate: toDate(dto.decisionDate),
-        mainDiseaseId: dto.mainDiseaseId,
-        mainCidId: dto.mainCidId,
-        profession: dto.profession,
-        educationLevel: dto.educationLevel,
-        ageAtFiling: dto.ageAtFiling,
-        familyIncome: dto.familyIncome,
-        familyGroupDescription: dto.familyGroupDescription,
-        expertId,
-        courtAgencyName: dto.courtAgencyName,
-        courtDivision: dto.courtDivision,
-        city: dto.city,
-        state: dto.state,
-        urgentReliefRequested: dto.urgentReliefRequested,
-        currentStatus: dto.currentStatus,
-        strategySummary: dto.strategySummary,
-        result: dto.result
-          ? {
-              upsert: {
-                create: dto.result,
-                update: dto.result
+      return await this.prisma.case.update({
+        where: { id },
+        data: {
+          internalCode: dto.internalCode,
+          clientId: dto.clientId,
+          caseNumber: dto.caseNumber,
+          channelType: dto.channelType,
+          benefitType: dto.benefitType,
+          protocolDate: toDate(dto.protocolDate),
+          derDate: toDate(dto.derDate),
+          expertExamDate: toDate(dto.expertExamDate),
+          decisionDate: toDate(dto.decisionDate),
+          mainDiseaseId: dto.mainDiseaseId,
+          mainCidId: dto.mainCidId,
+          profession: dto.profession,
+          educationLevel: dto.educationLevel,
+          ageAtFiling: dto.ageAtFiling,
+          familyIncome: dto.familyIncome,
+          familyGroupDescription: dto.familyGroupDescription,
+          expertId: shouldUpdateExpert ? (expertId ?? null) : undefined,
+          courtAgencyName: dto.courtAgencyName,
+          courtDivision: dto.courtDivision,
+          city: dto.city,
+          state: dto.state,
+          urgentReliefRequested: dto.urgentReliefRequested,
+          currentStatus: dto.currentStatus,
+          strategySummary: dto.strategySummary,
+          result: dto.result
+            ? {
+                upsert: {
+                  create: dto.result,
+                  update: dto.result
+                }
               }
-            }
-          : undefined,
-        internalNotes: dto.internalNote
-          ? {
-              create: {
-                ...dto.internalNote,
-                createdByUserId: userId,
-                updatedByUserId: userId
+            : undefined,
+          internalNotes: dto.internalNote
+            ? {
+                create: {
+                  ...dto.internalNote,
+                  createdByUserId: userId,
+                  updatedByUserId: userId
+                }
               }
-            }
-          : undefined
-      },
-      include: {
-        client: true,
-        result: true,
-        expert: true,
-        mainDisease: true
-      }
-    });
+            : undefined
+        },
+        include: {
+          client: true,
+          result: true,
+          expert: true,
+          mainDisease: true,
+          mainCid: true
+        }
+      });
+    } catch (error) {
+      this.rethrowKnownCreateError(error);
+    }
   }
 
   remove(id: string) {

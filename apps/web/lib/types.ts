@@ -107,12 +107,32 @@ export type CaseItem = {
   channelType: string;
   benefitType: string;
   currentStatus: string;
+  protocolDate?: string;
+  derDate?: string;
+  expertExamDate?: string;
+  decisionDate?: string;
+  profession?: string;
+  educationLevel?: string;
+  ageAtFiling?: number;
+  familyIncome?: string | number;
+  familyGroupDescription?: string;
+  courtAgencyName?: string;
+  courtDivision?: string;
   city?: string;
+  state?: string;
+  urgentReliefRequested?: boolean;
+  strategySummary?: string;
+  proceduralEvents?: { id?: string; eventType: string; eventDate: string; description?: string }[];
   client: { id: string; fullName: string; gender: string };
-  mainDisease?: { name: string };
-  mainCid?: { code: string };
-  expert?: { fullName: string; specialty?: string };
-  result?: { finalOutcome?: string; successFlag?: boolean };
+  mainDisease?: { id?: string; name: string };
+  mainCid?: { id?: string; code: string; description?: string };
+  expert?: { id?: string; fullName: string; specialty?: string; registryNumber?: string };
+  result?: {
+    administrativeResult?: string;
+    judicialResult?: string;
+    finalOutcome?: string;
+    successFlag?: boolean;
+  };
 };
 
 export type DocumentItem = {
