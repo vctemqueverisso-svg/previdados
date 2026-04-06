@@ -33,7 +33,7 @@ export default async function CasesPage({
     <div>
       <PageHeader
         title="Casos"
-        description="Espaco de atendimento e estrategia do cliente, com vinculo ao processo administrativo ou judicial, relato relevante e acompanhamento estruturado."
+        description="Espaço de atendimento e estratégia do cliente, com vínculo ao processo administrativo ou judicial, relato relevante e acompanhamento estruturado."
       />
 
       <form className="card mb-6 grid gap-3 p-5 md:grid-cols-5">
@@ -43,8 +43,8 @@ export default async function CasesPage({
           defaultValue={typeof resolvedSearchParams.search === "string" ? resolvedSearchParams.search : ""}
         />
         <select name="benefitType" defaultValue={typeof resolvedSearchParams.benefitType === "string" ? resolvedSearchParams.benefitType : ""}>
-          <option value="">Todos os beneficios</option>
-          <option value="AUXILIO_DOENCA">Auxilio-doenca</option>
+          <option value="">Todos os benefícios</option>
+          <option value="AUXILIO_DOENCA">Auxílio-doença</option>
           <option value="APOSENTADORIA_INCAPACIDADE">Aposentadoria por incapacidade</option>
           <option value="BPC_LOAS">BPC/LOAS</option>
           <option value="OUTRO">Outro</option>

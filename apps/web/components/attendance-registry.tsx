@@ -23,9 +23,9 @@ function formatAttendanceKind(value: string) {
     case "TRIAGEM_DOCUMENTAL":
       return "Triagem documental";
     case "ESTRATEGIA_PROCESSUAL":
-      return "Estrategia processual";
+      return "Estratégia processual";
     case "POS_DECISAO":
-      return "Pos-decisao";
+      return "Pós-decisão";
     default:
       return "Atendimento";
   }
@@ -83,7 +83,7 @@ export function AttendanceRegistry({ initialAttendances, clients, cases, lockedC
     setBusyAttendanceId(null);
 
     if (!response.ok) {
-      setFeedback("Nao foi possivel excluir o atendimento.");
+      setFeedback("Não foi possível excluir o atendimento.");
       return;
     }
 
@@ -102,7 +102,7 @@ export function AttendanceRegistry({ initialAttendances, clients, cases, lockedC
             <p className="eyebrow">Edicao</p>
             <h3 className="mt-2 text-2xl font-semibold text-ink">Atualizar atendimento</h3>
             <p className="mt-2 text-sm text-[color:var(--text-soft)]">
-              Ajuste o registro e mantenha o historico do cliente sempre claro.
+              Ajuste o registro e mantenha o histórico do cliente sempre claro.
             </p>
           </div>
           <CreateAttendanceForm
@@ -145,7 +145,7 @@ export function AttendanceRegistry({ initialAttendances, clients, cases, lockedC
               <div>
                 <p className="text-lg font-semibold text-ink">{getAttendanceHeading(attendance)}</p>
                 <p className="mt-2 text-sm text-slate-600">
-                  {attendance.ownerName ? `Responsavel: ${attendance.ownerName}` : "Registro vinculado ao historico do cliente."}
+                  {attendance.ownerName ? `Responsável: ${attendance.ownerName}` : "Registro vinculado ao histórico do cliente."}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -181,7 +181,7 @@ export function AttendanceRegistry({ initialAttendances, clients, cases, lockedC
               </div>
               <div className="md:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Relato do cliente</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{attendance.clientReport || "Relato ainda nao registrado."}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{attendance.clientReport || "Relato ainda não registrado."}</p>
               </div>
               <div className="md:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Documentos pendentes</p>
@@ -193,10 +193,10 @@ export function AttendanceRegistry({ initialAttendances, clients, cases, lockedC
       </div>
       ) : (
         <div className="card p-5">
-          <p className="eyebrow">Historico</p>
+          <p className="eyebrow">Histórico</p>
           <h3 className="mt-2 text-xl font-semibold text-ink">Selecione um cliente para visualizar os atendimentos</h3>
           <p className="mt-2 text-sm text-[color:var(--text-soft)]">
-            O historico fica disponivel apenas quando o atendimento estiver sendo aberto para um cliente especifico.
+            O histórico fica disponível apenas quando o atendimento estiver sendo aberto para um cliente específico.
           </p>
         </div>
       )}

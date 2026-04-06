@@ -25,5 +25,5 @@ export function getApiEnvWarning() {
     return null;
   }
 
-  return "NEXT_PUBLIC_API_URL nao configurada. Em producao, aponte para a URL publica da API.";
+  return "NEXT_PUBLIC_API_URL não configurada. Em produção, aponte para a URL pública da API.";
 }

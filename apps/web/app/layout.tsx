@@ -18,7 +18,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div className="pointer-events-none absolute right-4 top-5 flex items-center justify-center md:right-7 md:top-8 lg:right-8 lg:top-9">
               <Image
                 src="/brand/mark-dark.svg"
-                alt="Joao Carvalho Advocacia e Consultoria Juridica"
+                alt="João Carvalho Advocacia e Consultoria Jurídica"
                 width={92}
                 height={92}
                 priority
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               />
               <Image
                 src="/brand/logo-dark.svg"
-                alt="Joao Carvalho Advocacia e Consultoria Juridica"
+                alt="João Carvalho Advocacia e Consultoria Jurídica"
                 width={340}
                 height={180}
                 priority

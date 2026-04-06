@@ -5,7 +5,7 @@ const measures = [
   "Separacao entre dados do caso, metadados documentais e notas internas.",
   "Base preparada para logs de acesso e auditoria por entidade.",
   "Armazenamento de arquivos fora do banco, com chave de storage dedicada.",
-  "Arquitetura pronta para perfis de acesso por papel e modulos sensiveis.",
+  "Arquitetura pronta para perfis de acesso por papel e módulos sensíveis.",
   "Estrutura de dados adequada para trilha LGPD e revisao de acessos."
 ];
 
@@ -14,7 +14,7 @@ export default function SegurancaPage() {
     <div>
       <PageHeader
         title="Seguranca e LGPD"
-        description="Diretrizes implementadas e pontos de governanca para o tratamento de dados sensiveis previdenciarios e de saude."
+        description="Diretrizes implementadas e pontos de governança para o tratamento de dados sensíveis previdenciários e de saúde."
       />
 
       <div className="card p-6">
@@ -29,4 +29,3 @@ export default function SegurancaPage() {
     </div>
   );
 }
-

@@ -76,14 +76,14 @@ function formatGender(value?: string) {
     case "OUTRO":
       return "Outro";
     default:
-      return "Nao informado";
+      return "Não informado";
   }
 }
 
 function formatBenefit(value: string) {
   switch (value) {
     case "AUXILIO_DOENCA":
-      return "Auxilio-doenca";
+      return "Auxílio-doença";
     case "APOSENTADORIA_INCAPACIDADE":
       return "Aposentadoria por incapacidade";
     case "BPC_LOAS":
@@ -106,9 +106,9 @@ function formatAttendanceKind(value: string) {
     case "TRIAGEM_DOCUMENTAL":
       return "Triagem documental";
     case "ESTRATEGIA_PROCESSUAL":
-      return "Estrategia processual";
+      return "Estratégia processual";
     case "POS_DECISAO":
-      return "Pos-decisao";
+      return "Pós-decisão";
     default:
       return "Atendimento";
   }
@@ -137,7 +137,7 @@ export default async function ClientDetailPage({
     <div>
       <PageHeader
         title={client.fullName}
-        description="Ficha cadastral consolidada do cliente, com contato, endereco, documentos, atendimentos e historico processual."
+        description="Ficha cadastral consolidada do cliente, com contato, endereço, documentos, atendimentos e histórico processual."
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -153,7 +153,7 @@ export default async function ClientDetailPage({
               <p className="mt-2 text-sm text-slate-700">{new Date(client.birthDate).toLocaleDateString("pt-BR")}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Genero</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Gênero</p>
               <p className="mt-2 text-sm text-slate-700">{formatGender(client.gender)}</p>
             </div>
             <div>
@@ -161,18 +161,18 @@ export default async function ClientDetailPage({
               <p className="mt-2 text-sm text-slate-700">{client.phone || client.email || "-"}</p>
             </div>
             <div className="md:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Endereco</p>
-              <p className="mt-2 text-sm text-slate-700">{formatAddress(client) || "Endereco nao informado."}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Endereço</p>
+              <p className="mt-2 text-sm text-slate-700">{formatAddress(client) || "Endereço não informado."}</p>
             </div>
             <div className="md:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Observacoes cadastrais</p>
-              <p className="mt-2 text-sm leading-6 text-slate-700">{client.notes || "Sem observacoes no cadastro."}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Observações cadastrais</p>
+              <p className="mt-2 text-sm leading-6 text-slate-700">{client.notes || "Sem observações no cadastro."}</p>
             </div>
           </div>
         </section>
 
         <section className="card p-6">
-          <p className="eyebrow">Visao rapida</p>
+          <p className="eyebrow">Visão rápida</p>
           <div className="mt-4 space-y-4">
             <div className="rounded-2xl border border-[rgba(24,38,63,0.08)] bg-[rgba(250,252,255,0.85)] px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Casos vinculados</p>
@@ -194,9 +194,9 @@ export default async function ClientDetailPage({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Atendimentos</p>
-            <h3 className="mt-2 text-2xl font-semibold text-ink">Historico de consultas e estrategia</h3>
+            <h3 className="mt-2 text-2xl font-semibold text-ink">Histórico de consultas e estratégia</h3>
             <p className="mt-2 text-sm text-[color:var(--text-soft)]">
-              Aqui ficam os registros de conversa, orientacoes, estrategia juridica, documentos solicitados e proximos passos combinados com o cliente.
+              Aqui ficam os registros de conversa, orientações, estratégia jurídica, documentos solicitados e próximos passos combinados com o cliente.
             </p>
           </div>
           <Link
@@ -217,7 +217,7 @@ export default async function ClientDetailPage({
                       {formatAttendanceKind(item.kind)} - {new Date(item.attendanceDate).toLocaleDateString("pt-BR")}
                     </p>
                     <p className="mt-2 text-sm text-slate-600">
-                      {item.ownerName ? `Responsavel: ${item.ownerName}` : "Responsavel nao informado"}
+                      {item.ownerName ? `Responsável: ${item.ownerName}` : "Responsável não informado"}
                     </p>
                   </div>
                   <div className="rounded-full bg-[rgba(24,38,63,0.06)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
@@ -227,7 +227,7 @@ export default async function ClientDetailPage({
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   <div className="md:col-span-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Relato do cliente</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-700">{item.clientReport || "Relato ainda nao registrado."}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">{item.clientReport || "Relato ainda não registrado."}</p>
                   </div>
                   <div className="md:col-span-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Documentos pendentes</p>
@@ -237,7 +237,7 @@ export default async function ClientDetailPage({
               </div>
             ))
           ) : (
-            <p className="text-sm text-slate-600">Este cliente ainda nao possui atendimentos registrados.</p>
+            <p className="text-sm text-slate-600">Este cliente ainda não possui atendimentos registrados.</p>
           )}
         </div>
       </section>
@@ -246,9 +246,9 @@ export default async function ClientDetailPage({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Casos</p>
-            <h3 className="mt-2 text-2xl font-semibold text-ink">Historico processual</h3>
+            <h3 className="mt-2 text-2xl font-semibold text-ink">Histórico processual</h3>
             <p className="mt-2 text-sm text-[color:var(--text-soft)]">
-              Cada caso concentra o andamento administrativo ou judicial, a linha do tempo processual e a estrategia aplicada.
+              Cada caso concentra o andamento administrativo ou judicial, a linha do tempo processual e a estratégia aplicada.
             </p>
           </div>
           <Link href={`/casos?clientId=${client.id}`} className="rounded-xl border border-[rgba(24,38,63,0.12)] bg-white px-4 py-3 text-sm font-medium text-ink hover:bg-slate-50">
@@ -284,17 +284,17 @@ export default async function ClientDetailPage({
                   </div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Perito</p>
-                    <p className="mt-2 text-sm text-slate-700">{item.expert?.fullName || "Nao definido"}</p>
+                    <p className="mt-2 text-sm text-slate-700">{item.expert?.fullName || "Não definido"}</p>
                   </div>
                   <div className="md:col-span-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Sintese da estrategia</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-700">{item.strategySummary || "Estrategia ainda nao registrada."}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Síntese da estratégia</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">{item.strategySummary || "Estratégia ainda não registrada."}</p>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-sm text-slate-600">Este cliente ainda nao possui casos vinculados.</p>
+            <p className="text-sm text-slate-600">Este cliente ainda não possui casos vinculados.</p>
           )}
         </div>
       </section>

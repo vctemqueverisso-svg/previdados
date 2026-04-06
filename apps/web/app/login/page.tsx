@@ -27,7 +27,7 @@ export default function LoginPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Nao foi possivel entrar. Verifique email e senha.");
+        throw new Error("Não foi possível entrar. Verifique email e senha.");
       }
 
       const data = (await response.json()) as { accessToken: string };
@@ -45,7 +45,7 @@ export default function LoginPage() {
         <p className="text-xs uppercase tracking-[0.3em] text-moss">Acesso seguro</p>
         <h1 className="mt-3 text-3xl font-semibold text-ink">Entrar no PreviDados</h1>
         <p className="mt-3 text-sm text-stone-600">
-          Ambiente preparado para dados sensiveis previdenciarios, historico processual e inteligencia estatistica.
+          Ambiente preparado para dados sensíveis previdenciários, histórico processual e inteligência estatística.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">

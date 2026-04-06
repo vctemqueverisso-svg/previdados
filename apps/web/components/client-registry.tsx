@@ -64,7 +64,7 @@ export function ClientRegistry({ initialClients }: ClientRegistryProps) {
     setBusyClientId(null);
 
     if (!response.ok) {
-      setFeedback("Nao foi possivel excluir o cliente.");
+      setFeedback("Não foi possível excluir o cliente.");
       return;
     }
 
@@ -80,10 +80,10 @@ export function ClientRegistry({ initialClients }: ClientRegistryProps) {
       {editingClient ? (
         <div className="space-y-3">
           <div>
-            <p className="eyebrow">Edicao</p>
+            <p className="eyebrow">Edição</p>
             <h3 className="mt-2 text-2xl font-semibold text-ink">Atualizar cliente</h3>
             <p className="mt-2 text-sm text-[color:var(--text-soft)]">
-              Revise os dados cadastrais e mantenha o historico do cliente sempre completo.
+              Revise os dados cadastrais e mantenha o histórico do cliente sempre completo.
             </p>
           </div>
           <CreateClientForm
@@ -117,9 +117,9 @@ export function ClientRegistry({ initialClients }: ClientRegistryProps) {
               <th>Nome</th>
               <th>CPF</th>
               <th>Contato</th>
-              <th>Endereco</th>
+              <th>Endereço</th>
               <th>Casos</th>
-              <th>Acoes</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>

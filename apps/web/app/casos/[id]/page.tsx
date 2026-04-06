@@ -54,12 +54,47 @@ type CaseDetail = {
 const tabs = [
   ["resumo", "Resumo"],
   ["documentos", "Documentos"],
-  ["historico", "Historico"],
-  ["pericias", "Pericias"],
-  ["estrategia", "Atendimento e estrategia"],
+  ["historico", "Histórico"],
+  ["pericias", "Perícias"],
+  ["estrategia", "Atendimento e estratégia"],
   ["resultado", "Resultado"],
-  ["estatisticas", "Estatisticas relacionadas"]
+  ["estatisticas", "Estatísticas relacionadas"]
 ] as const;
+
+function formatProceduralEventType(value: string) {
+  switch (value) {
+    case "DER":
+      return "DER";
+    case "PROTOCOLO":
+      return "Protocolo";
+    case "PERICIA_MEDICA_ADMINISTRATIVA":
+      return "Perícia médica administrativa";
+    case "PERICIA_SOCIAL_ADMINISTRATIVA":
+      return "Perícia social administrativa";
+    case "DECISAO_ADMINISTRATIVA":
+      return "Decisão administrativa";
+    case "AJUIZAMENTO":
+      return "Ajuizamento";
+    case "PERICIA_MEDICA_JUDICIAL":
+      return "Perícia médica judicial";
+    case "PERICIA_SOCIAL_JUDICIAL":
+      return "Perícia social judicial";
+    case "SENTENCA":
+      return "Sentença";
+    case "RECURSO":
+      return "Recurso";
+    case "ACORDAO":
+      return "Acórdão";
+    case "CUMPRIMENTO":
+      return "Cumprimento";
+    case "DECISAO":
+      return "Decisão";
+    case "OUTRO":
+      return "Outro";
+    default:
+      return value;
+  }
+}
 
 export default async function CaseDetailPage({
   params,
@@ -72,22 +107,45 @@ export default async function CaseDetailPage({
   const resolvedSearchParams = (await searchParams) ?? {};
   const tab = typeof resolvedSearchParams.tab === "string" ? resolvedSearchParams.tab : "resumo";
   const data = await apiGet<CaseDetail>(`/cases/${id}`);
+
   const milestoneEvents = [
-    data.derDate ? { id: "der", eventType: "DER", eventDate: data.derDate, description: "Data de entrada do requerimento." } : null,
-    data.protocolDate ? { id: "protocolo-base", eventType: "PROTOCOLO", eventDate: data.protocolDate, description: "Marco principal do protocolo do caso." } : null,
+    data.derDate
+      ? {
+          id: "der",
+          eventType: "DER",
+          eventDate: data.derDate,
+          description: "Data de entrada do requerimento."
+        }
+      : null,
+    data.protocolDate
+      ? {
+          id: "protocolo-base",
+          eventType: "PROTOCOLO",
+          eventDate: data.protocolDate,
+          description: "Marco principal do protocolo do caso."
+        }
+      : null,
     data.expertExamDate
       ? {
           id: "pericia-base",
-          eventType: data.channelType === "JUDICIAL" ? "PERÍCIA JUDICIAL" : "PERÍCIA ADMINISTRATIVA",
+          eventType: data.channelType === "JUDICIAL" ? "PERICIA_MEDICA_JUDICIAL" : "PERICIA_MEDICA_ADMINISTRATIVA",
           eventDate: data.expertExamDate,
           description: "Data principal da perícia considerada para acompanhamento e estatística."
         }
       : null,
-    data.decisionDate ? { id: "decisao-base", eventType: "DECISÃO", eventDate: data.decisionDate, description: "Data principal da decisão do caso." } : null
+    data.decisionDate
+      ? {
+          id: "decisao-base",
+          eventType: "DECISAO",
+          eventDate: data.decisionDate,
+          description: "Data principal da decisão do caso."
+        }
+      : null
   ].filter(Boolean) as { id: string; eventType: string; eventDate: string; description?: string }[];
 
-  const timeline = [...milestoneEvents, ...data.proceduralEvents]
-    .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+  const timeline = [...milestoneEvents, ...data.proceduralEvents].sort(
+    (a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
+  );
 
   return (
     <div>
@@ -114,11 +172,11 @@ export default async function CaseDetailPage({
             <h3 className="text-lg font-semibold">Dados principais</h3>
             <dl className="mt-4 space-y-3 text-sm text-stone-700">
               <div>
-                <dt className="font-medium">Numero</dt>
+                <dt className="font-medium">Número</dt>
                 <dd>{data.caseNumber || "-"}</dd>
               </div>
               <div>
-                <dt className="font-medium">Doenca principal</dt>
+                <dt className="font-medium">Doença principal</dt>
                 <dd>{data.mainDisease?.name || "-"}</dd>
               </div>
               <div>
@@ -138,7 +196,7 @@ export default async function CaseDetailPage({
                 <dd>{data.expert?.fullName || "-"}</dd>
               </div>
               <div>
-                <dt className="font-medium">Orgao</dt>
+                <dt className="font-medium">Órgão</dt>
                 <dd>{[data.courtAgencyName, data.courtDivision].filter(Boolean).join(" / ") || "-"}</dd>
               </div>
             </dl>
@@ -160,7 +218,7 @@ export default async function CaseDetailPage({
                 <dd>{data.client.cpf}</dd>
               </div>
               <div>
-                <dt className="font-medium">Profissao</dt>
+                <dt className="font-medium">Profissão</dt>
                 <dd>{data.profession || "-"}</dd>
               </div>
               <div>
@@ -219,7 +277,7 @@ export default async function CaseDetailPage({
             {timeline.length ? (
               timeline.map((item) => (
                 <div key={item.id} className="rounded-xl border border-stone-200 px-4 py-3 text-sm">
-                  <div className="font-medium">{item.eventType}</div>
+                  <div className="font-medium">{formatProceduralEventType(item.eventType)}</div>
                   <div className="text-stone-500">{new Date(item.eventDate).toLocaleDateString("pt-BR")}</div>
                   <div>{item.description || "-"}</div>
                 </div>
@@ -233,23 +291,23 @@ export default async function CaseDetailPage({
 
       {tab === "pericias" ? (
         <section className="card p-5 text-sm text-stone-700">
-          <h3 className="text-lg font-semibold">Pericias</h3>
+          <h3 className="text-lg font-semibold">Perícias</h3>
           <p className="mt-4">Perito: {data.expert?.fullName || "-"}</p>
           <p>Especialidade: {data.expert?.specialty || "-"}</p>
-          <p>Tutela de urgencia: {data.urgentReliefRequested ? "Sim" : "Nao"}</p>
+          <p>Tutela de urgência: {data.urgentReliefRequested ? "Sim" : "Não"}</p>
         </section>
       ) : null}
 
       {tab === "estrategia" ? (
         <section className="card p-5">
-          <h3 className="text-lg font-semibold">Atendimento e estrategia</h3>
+          <h3 className="text-lg font-semibold">Atendimento e estratégia</h3>
           <div className="mt-4 space-y-3 text-sm text-stone-700">
             <p><strong>Síntese do atendimento:</strong> {data.strategySummary || "-"}</p>
-            <p><strong>Forca da prova:</strong> {data.internalNotes[0]?.strengthOfMedicalEvidence || "-"}</p>
-            <p><strong>Obstaculo principal:</strong> {data.internalNotes[0]?.mainObstacle || "-"}</p>
+            <p><strong>Força da prova:</strong> {data.internalNotes[0]?.strengthOfMedicalEvidence || "-"}</p>
+            <p><strong>Obstáculo principal:</strong> {data.internalNotes[0]?.mainObstacle || "-"}</p>
             <p><strong>Tese principal:</strong> {data.internalNotes[0]?.mainThesis || "-"}</p>
-            <p><strong>Tese subsidiaria:</strong> {data.internalNotes[0]?.secondaryThesis || "-"}</p>
-            <p><strong>Observacoes para audiencia/pericia:</strong> {data.internalNotes[0]?.hearingExamNotes || "-"}</p>
+            <p><strong>Tese subsidiária:</strong> {data.internalNotes[0]?.secondaryThesis || "-"}</p>
+            <p><strong>Observações para audiência/perícia:</strong> {data.internalNotes[0]?.hearingExamNotes || "-"}</p>
             <p><strong>Risco estimado:</strong> {data.internalNotes[0]?.estimatedRisk || "-"}</p>
           </div>
         </section>
@@ -270,9 +328,9 @@ export default async function CaseDetailPage({
 
       {tab === "estatisticas" ? (
         <section className="card p-5 text-sm text-stone-700">
-          <h3 className="text-lg font-semibold">Estatisticas relacionadas</h3>
-          <p className="mt-4">A base esta preparada para cruzar este caso com desempenho por perito, doenca, CID, faixa etaria e via.</p>
-          <p className="mt-2">No MVP atual, esses indicadores consolidados estao disponiveis no dashboard e na area de estatisticas.</p>
+          <h3 className="text-lg font-semibold">Estatísticas relacionadas</h3>
+          <p className="mt-4">A base está preparada para cruzar este caso com desempenho por perito, doença, CID, faixa etária e via.</p>
+          <p className="mt-2">No MVP atual, esses indicadores consolidados estão disponíveis no dashboard e na área de estatísticas.</p>
         </section>
       ) : null}
     </div>

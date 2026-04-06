@@ -14,7 +14,7 @@ export default async function FinanceiroPage() {
     <div>
       <PageHeader
         title="Financeiro"
-        description="Controle de honorarios por caso, com parcelas, atrasados e saldo em aberto em um so lugar."
+        description="Controle de honorários por caso, com parcelas, atrasados e saldo em aberto em um só lugar."
       />
 
       <FinanceWorkspace clients={clients} cases={cases} initialControls={financialControls} />

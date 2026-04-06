@@ -80,7 +80,7 @@ export function CreateDocumentForm({ categories, clients, cases }: Props) {
       <input type="number" placeholder="Tamanho em bytes" value={form.fileSize} onChange={(e) => setForm({ ...form, fileSize: Number(e.target.value) })} />
       <input type="date" value={form.documentDate} onChange={(e) => setForm({ ...form, documentDate: e.target.value })} />
       <input placeholder="Origem" value={form.origin} onChange={(e) => setForm({ ...form, origin: e.target.value })} />
-      <textarea className="md:col-span-3" placeholder="Observacoes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+      <textarea className="md:col-span-3" placeholder="Observações" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
       <textarea className="md:col-span-2" placeholder="Conclusao estruturada" value={form.extraction.finalConclusion} onChange={(e) => setForm({ ...form, extraction: { ...form.extraction, finalConclusion: e.target.value } })} />
       <label className="flex items-center gap-2 text-sm text-stone-600">
         <input type="checkbox" checked={form.extraction.hasIncapacity} onChange={(e) => setForm({ ...form, extraction: { ...form.extraction, hasIncapacity: e.target.checked } })} />

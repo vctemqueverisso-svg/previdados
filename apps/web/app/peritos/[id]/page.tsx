@@ -10,7 +10,7 @@ export default async function ExpertDetailPage({ params }: { params: Promise<{ i
     <div>
       <PageHeader
         title={expert.fullName}
-        description={`Analise pericial com foco em especialidade, volume de casos e taxa de exito associada.`}
+        description={`Análise pericial com foco em especialidade, volume de casos e taxa de êxito associada.`}
       />
 
       <div className="grid gap-6 xl:grid-cols-2">

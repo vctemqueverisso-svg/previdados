@@ -3,6 +3,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { CreateCaseDto } from "./dto/create-case.dto";
 import { UpdateCaseDto } from "./dto/update-case.dto";
 import { CaseFiltersDto } from "./dto/case-filters.dto";
+import { ProceduralEventType as PrismaProceduralEventType } from "@prisma/client";
 
 function toDate(value?: string) {
   return value ? new Date(value) : undefined;
@@ -66,7 +67,7 @@ export class CasesService {
         proceduralEvents: dto.proceduralEvents?.length
           ? {
               create: dto.proceduralEvents.map((event) => ({
-                eventType: event.eventType,
+                eventType: event.eventType as PrismaProceduralEventType,
                 eventDate: new Date(event.eventDate),
                 description: event.description,
                 relatedDocumentId: event.relatedDocumentId,

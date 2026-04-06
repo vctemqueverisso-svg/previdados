@@ -56,7 +56,7 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
     });
 
     if (!response.ok) {
-      window.alert("Nao foi possivel excluir o caso.");
+      window.alert("Não foi possível excluir o caso.");
       return;
     }
 
@@ -72,6 +72,18 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
         experts={experts}
         lockedClientId={lockedClientId}
         onClientChange={setSelectedClientId}
+        onSaved={(savedCase) => {
+          const normalizedCase: CaseItem = {
+            ...savedCase,
+            mainDisease: savedCase.mainDisease ?? undefined,
+            mainCid: savedCase.mainCid ?? undefined,
+            expert: savedCase.expert ?? undefined,
+            result: savedCase.result ?? undefined
+          };
+
+          setCases((current) => [normalizedCase, ...current]);
+          setSelectedClientId(savedCase.client.id);
+        }}
       />
 
       {selectedClientId ? (
@@ -82,11 +94,11 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
                 <th>Caso</th>
                 <th>Cliente</th>
                 <th>Via</th>
-                <th>Beneficio</th>
-                <th>Doenca/CID</th>
+                <th>Benefício</th>
+                <th>Doença/CID</th>
                 <th>Perito</th>
                 <th>Resultado</th>
-                <th>Acoes</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -128,10 +140,10 @@ export function CaseRegistry({ initialCases, clients, diseases, cids, experts, l
         </div>
       ) : (
         <div className="card p-5">
-          <p className="eyebrow">Historico</p>
+          <p className="eyebrow">Histórico</p>
           <h3 className="mt-2 text-xl font-semibold text-ink">Selecione um cliente para visualizar os casos</h3>
           <p className="mt-2 text-sm text-[color:var(--text-soft)]">
-            Os processos ja cadastrados aparecem somente quando o caso estiver sendo aberto para um cliente especifico.
+            Os processos já cadastrados aparecem somente quando o caso estiver sendo aberto para um cliente específico.
           </p>
         </div>
       )}

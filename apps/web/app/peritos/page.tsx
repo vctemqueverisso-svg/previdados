@@ -11,7 +11,7 @@ export default async function ExpertsPage() {
     <div>
       <PageHeader
         title="Peritos"
-        description="Cadastro, acompanhamento de especialidade e leitura estatistica do comportamento pericial."
+        description="Cadastro, acompanhamento de especialidade e leitura estatística do comportamento pericial."
       />
 
       <CreateExpertForm />
@@ -24,14 +24,14 @@ export default async function ExpertsPage() {
                 <Link href={`/peritos/${expert.id}`} className="text-lg font-semibold text-ink hover:text-gold">
                   {expert.fullName}
                 </Link>
-                <p className="mt-1 text-sm text-stone-500">{expert.specialty || "Especialidade nao informada"}</p>
+                <p className="mt-1 text-sm text-stone-500">{expert.specialty || "Especialidade não informada"}</p>
               </div>
               <span className="rounded-full bg-sand px-3 py-1 text-xs text-moss">
                 {expert._count?.cases ?? 0} casos
               </span>
             </div>
             <div className="mt-4 text-sm text-stone-600">
-              {[expert.city, expert.state].filter(Boolean).join("/") || "Local nao informado"}
+              {[expert.city, expert.state].filter(Boolean).join("/") || "Local não informado"}
             </div>
           </article>
         ))}

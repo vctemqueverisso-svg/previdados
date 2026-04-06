@@ -7,12 +7,12 @@ import { useEffect, useState } from "react";
 import { cn } from "./utils";
 
 const items = [
-  { href: "/", label: "Inicio", icon: Home },
+  { href: "/", label: "Início", icon: Home },
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/atendimentos", label: "Atendimentos", icon: MessageSquare },
   { href: "/casos", label: "Casos", icon: Briefcase },
   { href: "/financeiro", label: "Financeiro", icon: Calculator },
-  { href: "/estatisticas", label: "Estatisticas", icon: BarChart3 },
+  { href: "/estatisticas", label: "Estatísticas", icon: BarChart3 },
   { href: "/seguranca", label: "LGPD", icon: ShieldCheck }
 ];
 
@@ -70,10 +70,10 @@ export function Sidebar() {
           </div>
           <div className="mt-4 rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))] px-4 py-4">
             <p className="text-[10px] uppercase tracking-[0.28em] text-slate-400">Plataforma</p>
-            <h1 className="mt-3 text-[1.24rem] font-semibold leading-[1.04] tracking-[-0.02em]">Inteligencia previdenciaria aplicada</h1>
+            <h1 className="mt-3 text-[1.24rem] font-semibold leading-[1.04] tracking-[-0.02em]">Inteligência previdenciária aplicada</h1>
           </div>
           <p className="mt-3 text-[13px] leading-6 text-slate-300">
-            Operacao juridica, base documental e leitura estatistica em um so lugar.
+            Operação jurídica, base documental e leitura estatística em um só lugar.
           </p>
         </div>
 

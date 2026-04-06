@@ -28,7 +28,7 @@ function formatMoney(value?: string | number | null) {
 function formatBenefit(value: string) {
   switch (value) {
     case "AUXILIO_DOENCA":
-      return "Auxilio-doenca";
+      return "Auxílio-doença";
     case "APOSENTADORIA_INCAPACIDADE":
       return "Aposentadoria por incapacidade";
     case "BPC_LOAS":
@@ -224,7 +224,7 @@ export function FinanceWorkspace({
     setSaving(false);
 
     if (!response.ok) {
-      setFeedback("Nao foi possivel salvar o controle financeiro.");
+      setFeedback("Não foi possível salvar o controle financeiro.");
       return;
     }
 
@@ -255,12 +255,12 @@ export function FinanceWorkspace({
     });
 
     if (!response.ok) {
-      setFeedback("Nao foi possivel excluir o controle financeiro.");
+      setFeedback("Não foi possível excluir o controle financeiro.");
       return;
     }
 
     setControls((current) => current.filter((item) => item.id !== id));
-    setFeedback("Controle financeiro excluido.");
+    setFeedback("Controle financeiro excluído.");
   }
 
   function startEdit(item: FinancialControlItem) {
@@ -288,7 +288,7 @@ export function FinanceWorkspace({
         <MetricCard
           label="Total previsto"
           value={formatMoney(metrics.totalExpected)}
-          helper="Parcelas previstas mais honorarios sobre atrasados."
+          helper="Parcelas previstas mais honorários sobre atrasados."
           icon={<Calculator className="h-5 w-5" />}
         />
         <MetricCard
@@ -298,21 +298,21 @@ export function FinanceWorkspace({
           icon={<Wallet className="h-5 w-5" />}
         />
         <MetricCard
-          label="Ja recebido"
+          label="Já recebido"
           value={formatMoney(metrics.received)}
-          helper="Parcelas pagas e o que ja entrou dos atrasados."
+          helper="Parcelas pagas e o que já entrou dos atrasados."
           icon={<Receipt className="h-5 w-5" />}
         />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
         <div className="card p-6 md:p-7">
-          <p className="eyebrow">{editingId ? "Edicao" : "Novo controle"}</p>
+          <p className="eyebrow">{editingId ? "Edição" : "Novo controle"}</p>
           <h2 className="mt-2 text-[1.9rem] font-semibold leading-[1.02] tracking-[-0.03em] text-ink">
-            Honorarios do caso
+            Honorários do caso
           </h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            Vincule um caso e deixe o sistema calcular parcelas, atrasados e saldo com base na regra do escritorio.
+            Vincule um caso e deixe o sistema calcular parcelas, atrasados e saldo com base na regra do escritório.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
@@ -353,17 +353,17 @@ export function FinanceWorkspace({
                 </p>
                 <p className="mt-1">
                   {isAuxilioDoenca
-                    ? "Para auxilio-doenca, o numero de parcelas acompanha a quantidade de meses do beneficio informada abaixo."
+                    ? "Para auxílio-doença, o número de parcelas acompanha a quantidade de meses do benefício informada abaixo."
                     : selectedCase.channelType === "JUDICIAL"
-                      ? "Para beneficios permanentes, BPC e aposentadorias pela via judicial, o sistema calcula 24 parcelas de 30% do salario minimo."
-                      : "Para beneficios permanentes, BPC e aposentadorias pela via administrativa, o sistema calcula 12 parcelas de 30% do salario minimo."}
+                      ? "Para benefícios permanentes, BPC e aposentadorias pela via judicial, o sistema calcula 24 parcelas de 30% do salário mínimo."
+                      : "Para benefícios permanentes, BPC e aposentadorias pela via administrativa, o sistema calcula 12 parcelas de 30% do salário mínimo."}
                 </p>
               </div>
             ) : null}
 
             <div className="grid gap-4 md:grid-cols-2">
               <label className="space-y-2">
-                <span className="block text-sm font-medium text-[color:var(--text-soft)]">Salario minimo base</span>
+                <span className="block text-sm font-medium text-[color:var(--text-soft)]">Salário mínimo base</span>
                 <input
                   type="number"
                   min="0"
@@ -375,7 +375,7 @@ export function FinanceWorkspace({
 
               <label className="space-y-2">
                 <span className="block text-sm font-medium text-[color:var(--text-soft)]">
-                  {isAuxilioDoenca ? "Meses de recebimento do beneficio" : "Parcelas previstas"}
+                  {isAuxilioDoenca ? "Meses de recebimento do benefício" : "Parcelas previstas"}
                 </span>
                 <input
                   type="number"
@@ -417,7 +417,7 @@ export function FinanceWorkspace({
               </label>
 
               <label className="space-y-2">
-                <span className="block text-sm font-medium text-[color:var(--text-soft)]">Honorarios ja recebidos dos atrasados</span>
+                <span className="block text-sm font-medium text-[color:var(--text-soft)]">Honorários já recebidos dos atrasados</span>
                 <input
                   type="number"
                   min="0"
@@ -429,12 +429,12 @@ export function FinanceWorkspace({
             </div>
 
             <label className="space-y-2">
-              <span className="block text-sm font-medium text-[color:var(--text-soft)]">Observacoes financeiras</span>
+              <span className="block text-sm font-medium text-[color:var(--text-soft)]">Observações financeiras</span>
               <textarea
                 className="min-h-[160px]"
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Ex.: cliente combinou pagar a primeira parcela apos o primeiro credito do beneficio."
+                placeholder="Ex.: cliente combinou pagar a primeira parcela após o primeiro crédito do benefício."
               />
             </label>
 
@@ -454,7 +454,7 @@ export function FinanceWorkspace({
                   <p className="mt-2 text-lg font-semibold text-ink">{preview.remainingInstallments}</p>
                 </div>
                 <div className="rounded-2xl bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Honorarios sobre atrasados</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Honorários sobre atrasados</p>
                   <p className="mt-2 text-lg font-semibold text-ink">{formatMoney(preview.arrearsFeeValue)}</p>
                 </div>
               </div>
@@ -474,7 +474,7 @@ export function FinanceWorkspace({
                   className="rounded-2xl border border-[rgba(24,38,63,0.12)] bg-white px-5 py-3 text-sm font-semibold text-ink hover:bg-slate-50"
                   onClick={resetForm}
                 >
-                  Cancelar edicao
+                  Cancelar edição
                 </button>
               ) : null}
             </div>
@@ -488,7 +488,7 @@ export function FinanceWorkspace({
             <div>
               <p className="eyebrow">Controle</p>
               <h2 className="mt-2 text-[1.9rem] font-semibold leading-[1.02] tracking-[-0.03em] text-ink">
-                Casos com cobranca
+                Casos com cobrança
               </h2>
             </div>
             <div className="rounded-2xl border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.92)] px-4 py-3 text-sm text-slate-600">
@@ -568,14 +568,14 @@ export function FinanceWorkspace({
                       <div className="rounded-2xl bg-white p-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Atrasados</p>
                         <p className="mt-2 text-sm leading-6 text-slate-700">Base: {formatMoney(item.arrearsAmount)}</p>
-                        <p className="mt-1 text-sm leading-6 text-slate-700">Honorarios (30%): {formatMoney(item.arrearsFeeValue)}</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-700">Honorários (30%): {formatMoney(item.arrearsFeeValue)}</p>
                       </div>
                       <div className="rounded-2xl bg-white p-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Saldo em aberto</p>
                         <p className="mt-2 text-lg font-semibold text-ink">{formatMoney(remainingBalance)}</p>
                       </div>
                       <div className="rounded-2xl bg-white p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Recebido ate agora</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Recebido até agora</p>
                         <p className="mt-2 text-lg font-semibold text-ink">
                           {formatMoney(item.paidInstallments * installmentValue + toMoney(item.arrearsFeePaidAmount))}
                         </p>

@@ -93,7 +93,7 @@ export class DashboardService {
 
     const outcomeByDiseaseMap = proceduralSuccessByDisease.reduce(
       (acc: Record<string, { success: number; failure: number }>, item: any) => {
-        const disease = item.mainDisease?.name ?? "Nao informada";
+        const disease = item.mainDisease?.name ?? "Não informada";
         if (!acc[disease]) {
           acc[disease] = { success: 0, failure: 0 };
         }
@@ -122,7 +122,7 @@ export class DashboardService {
         total: item._count._all
       })),
       byDisease: casesByDisease.map((item: any) => ({
-        label: diseases.find((disease: any) => disease.id === item.mainDiseaseId)?.name ?? "Nao informada",
+        label: diseases.find((disease: any) => disease.id === item.mainDiseaseId)?.name ?? "Não informada",
         total: item._count._all
       })),
       byExpert: casesByExpert.map((item: any) => ({

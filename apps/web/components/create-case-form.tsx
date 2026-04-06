@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { getClientApiBaseUrl } from "../lib/client-api";
+import { CaseItem } from "../lib/types";
+import { normalizeMultilineText, normalizeSingleLineText } from "./utils";
 
 function getTokenFromCookie() {
   const value = document.cookie
@@ -20,6 +22,7 @@ type Props = {
   experts: Option[];
   lockedClientId?: string;
   onClientChange?: (clientId: string) => void;
+  onSaved?: (savedCase: CaseItem) => void;
 };
 
 type ProceduralEvent = {
@@ -30,10 +33,12 @@ type ProceduralEvent = {
 
 const eventTypeOptions = [
   { value: "PROTOCOLO", label: "Protocolo" },
-  { value: "PERICIA_ADMINISTRATIVA", label: "Perícia administrativa" },
+  { value: "PERICIA_MEDICA_ADMINISTRATIVA", label: "Perícia médica administrativa" },
+  { value: "PERICIA_SOCIAL_ADMINISTRATIVA", label: "Perícia social administrativa" },
   { value: "DECISAO_ADMINISTRATIVA", label: "Decisão administrativa" },
   { value: "AJUIZAMENTO", label: "Ajuizamento" },
-  { value: "PERICIA_JUDICIAL", label: "Perícia judicial" },
+  { value: "PERICIA_MEDICA_JUDICIAL", label: "Perícia médica judicial" },
+  { value: "PERICIA_SOCIAL_JUDICIAL", label: "Perícia social judicial" },
   { value: "SENTENCA", label: "Sentença" },
   { value: "RECURSO", label: "Recurso" },
   { value: "ACORDAO", label: "Acórdão" },
@@ -97,7 +102,7 @@ function Field({
   );
 }
 
-export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientId, onClientChange }: Props) {
+export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientId, onClientChange, onSaved }: Props) {
   const [form, setForm] = useState({
     internalCode: "",
     clientId: lockedClientId || clients[0]?.id || "",
@@ -139,19 +144,42 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
   });
   const [mainCidSearch, setMainCidSearch] = useState("");
   const [mainDiseaseSearch, setMainDiseaseSearch] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  function updateTextField(field: "internalCode" | "caseNumber" | "profession" | "educationLevel" | "courtAgencyName" | "courtDivision" | "city" | "state", value: string) {
+    setForm((current) => ({
+      ...current,
+      [field]: normalizeSingleLineText(value)
+    }));
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError("");
+    setSaving(true);
 
     const payload = {
       ...form,
+      internalCode: normalizeSingleLineText(form.internalCode),
+      caseNumber: normalizeSingleLineText(form.caseNumber),
       mainCidId: form.mainCidId || undefined,
+      profession: normalizeSingleLineText(form.profession),
+      educationLevel: normalizeSingleLineText(form.educationLevel),
       ageAtFiling: form.ageAtFiling === "" ? undefined : Number(form.ageAtFiling),
       familyIncome: form.familyIncome === "" ? undefined : Number(form.familyIncome),
-      proceduralEvents: form.proceduralEvents.filter((item) => item.eventDate)
+      familyGroupDescription: normalizeMultilineText(form.familyGroupDescription),
+      courtAgencyName: normalizeSingleLineText(form.courtAgencyName),
+      courtDivision: normalizeSingleLineText(form.courtDivision),
+      city: normalizeSingleLineText(form.city),
+      state: normalizeSingleLineText(form.state),
+      strategySummary: normalizeMultilineText(form.strategySummary),
+      proceduralEvents: form.proceduralEvents
+        .filter((item) => item.eventDate)
+        .map((item) => ({ ...item, description: normalizeSingleLineText(item.description) }))
     };
 
-    await fetch(`${getClientApiBaseUrl()}/api/cases`, {
+    const response = await fetch(`${getClientApiBaseUrl()}/api/cases`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -160,7 +188,45 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
       body: JSON.stringify(payload)
     });
 
-    window.location.reload();
+    setSaving(false);
+
+    if (!response.ok) {
+      setError("Não foi possível cadastrar o caso.");
+      return;
+    }
+
+    const savedCase = await response.json();
+
+    setForm((current) => ({
+      ...current,
+      internalCode: "",
+      caseNumber: "",
+      protocolDate: "",
+      derDate: "",
+      expertExamDate: "",
+      decisionDate: "",
+      profession: "",
+      educationLevel: "",
+      ageAtFiling: "",
+      familyIncome: "",
+      familyGroupDescription: "",
+      expertId: "",
+      courtAgencyName: "",
+      courtDivision: "",
+      city: "",
+      state: "",
+      strategySummary: "",
+      proceduralEvents: [{ eventType: "PROTOCOLO", eventDate: "", description: "" }],
+      result: {
+        administrativeResult: "PENDENTE",
+        judicialResult: "PENDENTE",
+        finalOutcome: "PENDENTE"
+      }
+    }));
+    setMainCidSearch("");
+    setMainDiseaseSearch("");
+    onClientChange?.(savedCase.client.id);
+    onSaved?.(savedCase);
   }
 
   return (
@@ -215,7 +281,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
               className="w-full"
               placeholder="Número do processo ou NB"
               value={form.caseNumber}
-              onChange={(e) => setForm({ ...form, caseNumber: e.target.value })}
+              onChange={(e) => updateTextField("caseNumber", e.target.value)}
             />
           </Field>
 
@@ -224,7 +290,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
               className="w-full"
               placeholder="ID interno"
               value={form.internalCode}
-              onChange={(e) => setForm({ ...form, internalCode: e.target.value })}
+              onChange={(e) => updateTextField("internalCode", e.target.value)}
               required
             />
           </Field>
@@ -241,7 +307,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
                 placeholder="Digite a doença principal"
                 value={mainDiseaseSearch}
                 onChange={(e) => {
-                  const nextValue = e.target.value;
+                  const nextValue = normalizeSingleLineText(e.target.value);
                   setMainDiseaseSearch(nextValue);
                   setForm({ ...form, mainDiseaseId: resolveOptionId(diseases, nextValue) });
                 }}
@@ -260,7 +326,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
                 placeholder="Digite o CID principal"
                 value={mainCidSearch}
                 onChange={(e) => {
-                  const nextValue = e.target.value;
+                  const nextValue = normalizeSingleLineText(e.target.value);
                   setMainCidSearch(nextValue);
                   setForm({ ...form, mainCidId: resolveOptionId(cids, nextValue) });
                 }}
@@ -457,7 +523,7 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
                     setForm({
                       ...form,
                       proceduralEvents: form.proceduralEvents.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, description: e.target.value } : item
+                        itemIndex === index ? { ...item, description: normalizeSingleLineText(e.target.value) } : item
                       )
                     })
                   }
@@ -485,8 +551,15 @@ export function CreateCaseForm({ clients, diseases, cids, experts, lockedClientI
       </details>
 
       <div className="flex justify-end">
-        <button className="rounded-xl bg-ink px-6 py-3 text-sm font-medium text-white hover:bg-ink/90">Cadastrar caso</button>
+        <button
+          disabled={saving}
+          className="rounded-xl bg-ink px-6 py-3 text-sm font-medium text-white hover:bg-ink/90 disabled:opacity-70"
+        >
+          {saving ? "Salvando..." : "Cadastrar caso"}
+        </button>
       </div>
+
+      {error ? <p className="text-sm text-[#8b3a3a]">{error}</p> : null}
     </form>
   );
 }

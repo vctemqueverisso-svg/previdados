@@ -67,7 +67,7 @@ export class FinanceService {
     });
 
     if (!linkedCase) {
-      throw new BadRequestException("Caso nao encontrado para controle financeiro.");
+      throw new BadRequestException("Caso não encontrado para controle financeiro.");
     }
 
     const minimumWageAmount = dto.minimumWageAmount ?? 1621;
@@ -147,7 +147,7 @@ export class FinanceService {
     });
 
     if (!current) {
-      throw new BadRequestException("Controle financeiro nao encontrado.");
+      throw new BadRequestException("Controle financeiro não encontrado.");
     }
 
     const minimumWageAmount = dto.minimumWageAmount ?? Number(current.minimumWageAmount);

@@ -21,7 +21,7 @@ export default async function AttendimentosPage({
     <div>
       <PageHeader
         title="Atendimentos"
-        description="Registro das consultas, retornos, estrategias e proximos passos combinados com cada cliente."
+        description="Registro das consultas, retornos, estratégias e próximos passos combinados com cada cliente."
       />
 
       <AttendanceRegistry initialAttendances={attendances} clients={clients} cases={cases} lockedClientId={lockedClientId} />

@@ -43,7 +43,7 @@ export function CreateExpertForm() {
       <input placeholder="Registro" value={form.registryNumber} onChange={(e) => setForm({ ...form, registryNumber: e.target.value })} />
       <input placeholder="Cidade" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
       <input placeholder="UF" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
-      <textarea placeholder="Observacoes internas" className="md:col-span-2" value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })} />
+      <textarea placeholder="Observações internas" className="md:col-span-2" value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })} />
       <button className="rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white hover:bg-ink/90">Cadastrar perito</button>
     </form>
   );

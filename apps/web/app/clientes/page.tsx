@@ -10,7 +10,7 @@ export default async function ClientesPage() {
     <div>
       <PageHeader
         title="Clientes"
-        description="Cadastro e consulta dos segurados com historico de casos, dados cadastrais e vinculos documentais."
+        description="Cadastro e consulta dos segurados com histórico de casos, dados cadastrais e vínculos documentais."
       />
 
       <ClientRegistry initialClients={clients} />

@@ -15,7 +15,7 @@ function getTokenFromCookie() {
   return value ?? "";
 }
 
-const responsibleOptions = ["Brenda Soares Carvalho", "Joao Victor Soares Carvalho"];
+const responsibleOptions = ["Brenda Soares Carvalho", "João Victor Soares Carvalho"];
 
 const statusMeta = {
   PENDENTE: {
@@ -27,7 +27,7 @@ const statusMeta = {
     badge: "border-[rgba(39,104,74,0.18)] bg-[rgba(39,104,74,0.12)] text-[#205b43]"
   },
   NAO_CUMPRIDO: {
-    label: "Nao cumprido",
+    label: "Não cumprido",
     badge: "border-[rgba(143,58,58,0.18)] bg-[rgba(255,242,242,0.95)] text-[#8b3a3a]"
   }
 } as const;
@@ -154,7 +154,7 @@ export function DeadlineWorkspace({
     setSaving(false);
 
     if (!response.ok) {
-      setError("Nao foi possivel registrar o prazo.");
+      setError("Não foi possível registrar o prazo.");
       return;
     }
 
@@ -209,13 +209,13 @@ export function DeadlineWorkspace({
       <section className="card px-6 py-6 md:px-8">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
-            <p className="eyebrow">Inicio</p>
+            <p className="eyebrow">Início</p>
             <h1 className="mt-3 text-[2.2rem] font-semibold leading-[0.96] tracking-[-0.04em] text-ink md:text-[3rem]">
-              Prazos do escritorio, sob controle.
+              Prazos do escritório, sob controle.
             </h1>
             <p className="mt-4 max-w-2xl text-[15px] leading-7 text-slate-600">
-              Use esta caixa para acompanhar o que cada cliente ainda precisa entregar, quem ficou responsavel e se a
-              pendencia foi resolvida no prazo.
+              Use esta caixa para acompanhar o que cada cliente ainda precisa entregar, quem ficou responsável e se a
+              pendência foi resolvida no prazo.
             </p>
           </div>
 
@@ -223,20 +223,20 @@ export function DeadlineWorkspace({
             <MetricTile
               label="Pendentes"
               value={metrics.pending}
-              helper="Itens ainda sem conclusao."
+              helper="Itens ainda sem conclusão."
               icon={<FileStack className="h-5 w-5" />}
               accent="dark"
             />
             <MetricTile
               label="Em atraso"
               value={metrics.overdue}
-              helper="Pendencias que passaram da data."
+              helper="Pendências que passaram da data."
               icon={<AlertCircle className="h-5 w-5" />}
             />
             <MetricTile
               label="Cumpridos"
               value={metrics.completed}
-              helper="Prazos ja resolvidos."
+              helper="Prazos já resolvidos."
               icon={<CheckCircle2 className="h-5 w-5" />}
             />
           </div>
@@ -247,10 +247,10 @@ export function DeadlineWorkspace({
         <div className="card p-6 md:p-7">
           <p className="eyebrow">Novo prazo</p>
           <h2 className="mt-2 text-[1.95rem] font-semibold leading-[1.02] tracking-[-0.03em] text-ink">
-            Registrar cobranca ou pendencia
+            Registrar cobrança ou pendência
           </h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            Cadastre uma tarefa objetiva, com cliente, data limite e responsavel definido.
+            Cadastre uma tarefa objetiva, com cliente, data limite e responsável definido.
           </p>
 
           <form onSubmit={handleCreate} className="mt-6 grid gap-4">
@@ -267,12 +267,12 @@ export function DeadlineWorkspace({
             </label>
 
             <label className="space-y-2">
-              <span className="block text-sm font-medium text-[color:var(--text-soft)]">Prazo ou pendencia</span>
+              <span className="block text-sm font-medium text-[color:var(--text-soft)]">Prazo ou pendência</span>
               <input
                 className="min-h-[54px] text-[15px]"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Ex.: juntar CNIS, RG, comprovante e laudo medico"
+                placeholder="Ex.: juntar CNIS, RG, comprovante e laudo médico"
                 required
               />
             </label>
@@ -289,7 +289,7 @@ export function DeadlineWorkspace({
               </label>
 
               <label className="space-y-2">
-                <span className="block text-sm font-medium text-[color:var(--text-soft)]">Responsavel</span>
+                <span className="block text-sm font-medium text-[color:var(--text-soft)]">Responsável</span>
                 <select value={form.responsibleName} onChange={(e) => setForm({ ...form, responsibleName: e.target.value })}>
                   {responsibleOptions.map((owner) => (
                     <option key={owner} value={owner}>
@@ -301,12 +301,12 @@ export function DeadlineWorkspace({
             </div>
 
             <label className="space-y-2">
-              <span className="block text-sm font-medium text-[color:var(--text-soft)]">Observacoes</span>
+              <span className="block text-sm font-medium text-[color:var(--text-soft)]">Observações</span>
               <textarea
                 className="min-h-[220px]"
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Ex.: cliente vai mandar os exames pelo WhatsApp e assinar a procuracao ate a data limite."
+                placeholder="Ex.: cliente vai mandar os exames pelo WhatsApp e assinar a procuração até a data limite."
               />
             </label>
 
@@ -321,7 +321,7 @@ export function DeadlineWorkspace({
                 {saving ? "Salvando..." : "Registrar prazo"}
               </button>
               <div className="rounded-2xl border border-[rgba(24,38,63,0.08)] bg-[rgba(248,251,255,0.8)] px-4 py-3 text-sm text-slate-600">
-                Sempre registre uma pendencia por vez.
+                Sempre registre uma pendência por vez.
               </div>
             </div>
           </form>
@@ -342,7 +342,7 @@ export function DeadlineWorkspace({
           </div>
 
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            Marque o prazo como cumprido, nao cumprido ou ainda pendente conforme a resposta do cliente.
+            Marque o prazo como cumprido, não cumprido ou ainda pendente conforme a resposta do cliente.
           </p>
 
           <div className="mt-5">
@@ -382,7 +382,7 @@ export function DeadlineWorkspace({
                         ) : null}
                       </div>
                       <p className="mt-2 text-sm text-slate-600">
-                        <strong className="font-medium text-ink">{deadline.client.fullName}</strong> · ate {formatDate(deadline.dueDate)} · responsavel:{" "}
+                        <strong className="font-medium text-ink">{deadline.client.fullName}</strong> · até {formatDate(deadline.dueDate)} · responsável:{" "}
                         {deadline.responsibleName}
                       </p>
                       {deadline.notes ? <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{deadline.notes}</p> : null}
@@ -401,7 +401,7 @@ export function DeadlineWorkspace({
                         onClick={() => updateStatus(deadline.id, "NAO_CUMPRIDO")}
                         className="rounded-xl border border-[rgba(140,45,45,0.14)] bg-[rgba(255,242,242,0.95)] px-4 py-2 text-sm font-medium text-[#8b3a3a] hover:bg-[rgba(255,235,235,1)]"
                       >
-                        Nao cumprido
+                        Não cumprido
                       </button>
                       <button
                         type="button"
@@ -425,7 +425,7 @@ export function DeadlineWorkspace({
               <div className="rounded-[24px] border border-dashed border-[rgba(24,38,63,0.14)] bg-[rgba(248,251,255,0.7)] px-6 py-8 text-sm leading-7 text-slate-500">
                 {selectedClientId
                   ? "Nenhum prazo encontrado para este cliente."
-                  : "Nenhum prazo registrado ainda. Use a caixa ao lado para criar a primeira pendencia da equipe."}
+                  : "Nenhum prazo registrado ainda. Use a caixa ao lado para criar a primeira pendência da equipe."}
               </div>
             )}
           </div>

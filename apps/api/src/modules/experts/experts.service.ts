@@ -47,7 +47,7 @@ export class ExpertsService {
 
     const favorable = expert.cases.filter((item: any) => item.result?.successFlag).length;
     const diseaseFrequency = expert.cases.reduce((acc: Record<string, number>, item: any) => {
-      const key = item.mainDisease?.name ?? "Nao informada";
+      const key = item.mainDisease?.name ?? "Não informada";
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
